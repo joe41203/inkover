@@ -1,0 +1,24 @@
+{
+  "name": "inkover",
+  "private": true,
+  "version": "0.1.0",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "wxt",
+    "build": "wxt build",
+    "zip": "wxt zip",
+    "compile": "tsc --noEmit",
+    "test": "vitest run",
+    "postinstall": "wxt prepare"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.10",
+    "web-ext": "^10.5.0",
+    "wxt": "^0.21.2"
+  },
+  "dependencies": {
+    "perfect-freehand": "^1.2.2"
+  }
+}
