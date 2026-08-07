@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <title>Q3 売上ダッシュボード — 週次レビュー</title>
+    <style>
+      /*
+       * 掲載画像の撮影用ダミーページ。
+       * 「会議で共有されがちな画面」に寄せた見た目にして、その上へ inkover で
+       * 注釈を描いた状態を撮る。実在のサービスを模さないよう配色は独自にする。
+       */
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+          "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
+        background: #f4f6fa;
+        color: #1b2430;
+      }
+      .top {
+        background: #fff;
+        border-bottom: 1px solid #e4e8f0;
+        padding: 14px 32px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .top .logo {
+        width: 26px; height: 26px; border-radius: 7px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      }
+      .top h1 { font-size: 15px; margin: 0; font-weight: 700; }
+      .top .who { margin-left: auto; font-size: 13px; color: #6b7688; }
+      .wrap { padding: 28px 32px 60px; max-width: 1180px; }
+      .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+      .kpi {
+        background: #fff; border: 1px solid #e4e8f0; border-radius: 12px;
+        padding: 18px 20px;
+      }
+      .kpi .label { font-size: 12px; color: #6b7688; margin-bottom: 8px; }
+      .kpi .val { font-size: 26px; font-weight: 800; letter-spacing: -0.01em; }
+      .kpi .delta { font-size: 12px; margin-top: 6px; font-weight: 600; }
+      .up { color: #059669; }
+      .down { color: #dc2626; }
+      .panel {
+        background: #fff; border: 1px solid #e4e8f0; border-radius: 12px;
+        margin-top: 20px; overflow: hidden;
+      }
+      .panel h2 {
+        font-size: 14px; margin: 0; padding: 16px 20px;
+        border-bottom: 1px solid #e4e8f0; font-weight: 700;
+      }
+      .chart { padding: 24px 20px 8px; }
+      .bars { display: flex; align-items: flex-end; gap: 18px; height: 190px; }
+      .bar { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+      .bar .fill {
+        width: 100%; border-radius: 6px 6px 0 0;
+        background: linear-gradient(180deg, #818cf8, #6366f1);
+      }
+      .bar.alert .fill { background: linear-gradient(180deg, #fca5a5, #ef4444); }
+      .bar .m { font-size: 11px; color: #6b7688; }
+      table { width: 100%; border-collapse: collapse; font-size: 13px; }
+      th, td { text-align: left; padding: 11px 20px; border-bottom: 1px solid #eef1f6; }
+      th { color: #6b7688; font-weight: 600; font-size: 12px; background: #fafbfd; }
+      td.num { text-align: right; font-variant-numeric: tabular-nums; }
+      tr:last-child td { border-bottom: 0; }
+      .tag {
+        display: inline-block; padding: 2px 9px; border-radius: 999px;
+        font-size: 11px; font-weight: 600;
+      }
+      .tag.ok { background: #d1fae5; color: #047857; }
+      .tag.warn { background: #fee2e2; color: #b91c1c; }
+    </style>
+  </head>
+  <body>
+    <div class="top">
+      <div class="logo"></div>
+      <h1>Q3 売上ダッシュボード — 週次レビュー</h1>
+      <div class="who">共有中 · 参加者 6 名</div>
+    </div>
+
+    <div class="wrap">
+      <div class="kpis">
+        <div class="kpi">
+          <div class="label">今週の売上</div>
+          <div class="val">¥4,820,000</div>
+          <div class="delta up">前週比 +12.4%</div>
+        </div>
+        <div class="kpi">
+          <div class="label">新規契約</div>
+          <div class="val">38 件</div>
+          <div class="delta up">前週比 +6 件</div>
+        </div>
+        <div class="kpi">
+          <div class="label">解約率</div>
+          <div class="val">3.8%</div>
+          <div class="delta down">前週比 +1.1pt</div>
+        </div>
+        <div class="kpi">
+          <div class="label">平均単価</div>
+          <div class="val">¥126,800</div>
+          <div class="delta up">前週比 +2.0%</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>月次推移</h2>
+        <div class="chart">
+          <div class="bars">
+            <div class="bar"><div class="fill" style="height: 52%"></div><div class="m">4月</div></div>
+            <div class="bar"><div class="fill" style="height: 61%"></div><div class="m">5月</div></div>
+            <div class="bar"><div class="fill" style="height: 58%"></div><div class="m">6月</div></div>
+            <div class="bar"><div class="fill" style="height: 74%"></div><div class="m">7月</div></div>
+            <div class="bar alert"><div class="fill" style="height: 44%"></div><div class="m">8月</div></div>
+            <div class="bar"><div class="fill" style="height: 88%"></div><div class="m">9月</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>プラン別内訳</h2>
+        <table>
+          <thead>
+            <tr><th>プラン</th><th>契約数</th><th class="num">売上</th><th class="num">構成比</th><th>状態</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>エンタープライズ</td><td>12</td><td class="num">¥2,140,000</td><td class="num">44.4%</td><td><span class="tag ok">好調</span></td></tr>
+            <tr><td>ビジネス</td><td>47</td><td class="num">¥1,580,000</td><td class="num">32.8%</td><td><span class="tag ok">好調</span></td></tr>
+            <tr><td>スタンダード</td><td>96</td><td class="num">¥820,000</td><td class="num">17.0%</td><td><span class="tag warn">要確認</span></td></tr>
+            <tr><td>スターター</td><td>184</td><td class="num">¥280,000</td><td class="num">5.8%</td><td><span class="tag ok">横ばい</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </body>
+</html>

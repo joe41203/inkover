@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>プライバシーポリシー — inkover</title>
+    <meta
+      name="description"
+      content="inkover のプライバシーポリシー。ユーザーデータの収集・送信は一切行いません。"
+    />
+    <link rel="icon" href="./icon-48.png" />
+    <link rel="stylesheet" href="./style.css" />
+    <style>
+      .doc { max-width: 760px; margin: 0 auto; padding: 64px 24px 90px; }
+      .doc h1 { font-size: 32px; font-weight: 800; margin: 0 0 10px; }
+      .doc .upd { color: var(--text-muted); font-size: 14px; margin: 0 0 40px; }
+      .doc h2 {
+        font-size: 20px;
+        font-weight: 700;
+        margin: 44px 0 12px;
+        padding-top: 26px;
+        border-top: 1px solid var(--border);
+      }
+      .doc h2:first-of-type { border-top: 0; padding-top: 0; }
+      .doc p, .doc li { color: var(--text-muted); font-size: 15.5px; }
+      .doc ul { padding-left: 22px; }
+      .doc li { margin-bottom: 9px; }
+      .doc strong { color: var(--text); font-weight: 700; }
+      .doc .lead-box {
+        background: var(--surface);
+        border: 1px solid var(--border-strong);
+        border-radius: var(--radius-lg);
+        padding: 24px 26px;
+        margin-bottom: 40px;
+      }
+      .doc .lead-box p { margin: 0; color: var(--text); font-size: 17px; font-weight: 600; }
+      .doc table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 15px; }
+      .doc th, .doc td {
+        text-align: left;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      .doc th { color: var(--text); font-weight: 700; font-size: 14px; }
+      .doc td { color: var(--text-muted); }
+      .doc td code { color: var(--sky); }
+      .back { display: inline-block; margin-bottom: 28px; font-size: 14px; color: var(--text-muted); text-decoration: none; }
+      .back:hover { color: var(--text); }
+    </style>
+  </head>
+  <body>
+    <div class="doc">
+      <a class="back" href="./">&larr; inkover</a>
+      <h1>プライバシーポリシー</h1>
+      <p class="upd">最終更新: 2026年8月7日</p>
+
+      <div class="lead-box">
+        <p>
+          inkover は、利用者のいかなるデータも収集・送信・共有しません。実行時に外部への通信を一切行いません。
+        </p>
+      </div>
+
+      <h2>収集する情報</h2>
+      <p>
+        ありません。inkover は個人情報、閲覧履歴、ページの内容、描画した内容を含め、いかなる情報も収集しません。
+      </p>
+
+      <h2>外部送信</h2>
+      <p>
+        行いません。inkover は実行時に外部サーバーへの通信を一切行わない設計です。解析ツール、広告、クラッシュレポート、リモートの設定取得なども使用していません。テキスト注釈に使うフォントも拡張内に同梱しており、外部から取得することはありません。
+      </p>
+
+      <h2>描画した内容の扱い</h2>
+      <p>
+        描画した線・図形・テキストは、ブラウザのメモリ上にのみ存在します。ディスクには保存されず、拡張を終了するかタブを閉じた時点で失われます。外部に送信されることはありません。
+      </p>
+
+      <h2>ブラウザ内に保存する情報</h2>
+      <p>
+        次回の利用時に引き継ぐため、以下の設定のみを <code>chrome.storage.local</code>（お使いのブラウザ内）に保存します。個人を識別できる情報は含まれません。
+      </p>
+      <ul>
+        <li>選択中のペンの色</li>
+        <li>選択中の線の太さ</li>
+        <li>選択中のツール</li>
+        <li>消えるインクの有効・無効</li>
+      </ul>
+      <p>
+        これらは外部に送信されず、拡張を削除すると消去されます。
+      </p>
+
+      <h2>要求する権限とその理由</h2>
+      <table>
+        <thead>
+          <tr><th>権限</th><th>用途</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>activeTab</code></td>
+            <td>
+              利用者が拡張のアイコンを押した、そのタブにのみ一時的にアクセスします。押されるまでいかなるページにもアクセスしません。ページの内容を読み取ることはありません。
+            </td>
+          </tr>
+          <tr>
+            <td><code>scripting</code></td>
+            <td>
+              アイコンが押されたときに、描画用のキャンバスをそのページへ重ねるために使用します。
+            </td>
+          </tr>
+          <tr>
+            <td><code>storage</code></td>
+            <td>
+              上記の設定（色・太さ・ツール）をブラウザ内に保存するために使用します。
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        <strong>すべてのサイトへのアクセス権（<code>&lt;all_urls&gt;</code> の <code>host_permissions</code>）は要求しません。</strong>
+        したがって、利用者がアイコンを押していないページに対して inkover が動作することはありません。
+      </p>
+
+      <h2>第三者への提供</h2>
+      <p>
+        収集するデータが存在しないため、第三者への提供・販売・共有は一切ありません。
+      </p>
+
+      <h2>子どものプライバシー</h2>
+      <p>
+        inkover はいかなる利用者からも情報を収集しないため、年齢を問わず個人情報が取得されることはありません。
+      </p>
+
+      <h2>ソースコード</h2>
+      <p>
+        inkover のソースコードはすべて公開されています。本ポリシーの内容は
+        <a href="https://github.com/joe41203/inkover">GitHub リポジトリ</a>
+        で検証できます。
+      </p>
+
+      <h2>ポリシーの変更</h2>
+      <p>
+        本ポリシーを変更する場合は、このページを更新し、最終更新日を改めます。データの取り扱いに実質的な変更が生じる場合は、変更を適用する前にお知らせします。
+      </p>
+
+      <h2>お問い合わせ</h2>
+      <p>
+        ご質問は
+        <a href="https://github.com/joe41203/inkover/issues">GitHub の Issues</a>
+        へお寄せください。
+      </p>
+    </div>
+  </body>
+</html>

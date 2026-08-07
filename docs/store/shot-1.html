@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <title>inkover — ヒーロー</title>
+    <link rel="stylesheet" href="./store.css" />
+    <style>
+      /* shot-1: ヒーロー。左にコピー、右に注釈済みの共有画面を大きく配置。 */
+      .hero {
+        display: grid;
+        grid-template-columns: 468px 1fr;
+        align-items: center;
+        height: 100%;
+        padding: 0 46px 0 60px;
+        gap: 16px;
+      }
+      .hero-copy .brandbar { margin-bottom: 30px; }
+      .hero-copy h1 {
+        margin: 0;
+        font-size: 44px;
+        font-weight: 800;
+        line-height: 1.32;
+        letter-spacing: 0.005em;
+      }
+      .hero-copy h1 .hl {
+        color: var(--pen-coral);
+        white-space: nowrap;
+      }
+      .hero-copy .sub {
+        margin: 24px 0 0;
+        font-size: 20px;
+        line-height: 1.72;
+        max-width: 26ch;
+      }
+      .hero-copy .sub .strong {
+        color: var(--text);
+        font-weight: 700;
+      }
+      .hero-copy .chips { margin-top: 30px; max-width: 430px; }
+
+      .hero-stage {
+        position: relative;
+        height: 100%;
+        overflow: hidden;
+      }
+      /* 画面全体が収まる幅にする。切れると注釈の意味が伝わらない。 */
+      .hero-stage .browser {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        width: 100%;
+        transform: translateY(-50%) rotate(-1.8deg);
+        transform-origin: center;
+      }
+      /* アクセントの発光 */
+      .hero-stage::after {
+        content: "";
+        position: absolute;
+        width: 420px;
+        height: 420px;
+        right: -120px;
+        top: -130px;
+        background: radial-gradient(circle, rgba(251, 113, 133, 0.2), transparent 68%);
+        pointer-events: none;
+      }
+      .sharing-wrap { margin-bottom: 22px; }
+    </style>
+  </head>
+  <body>
+    <div class="canvas">
+      <div class="hero">
+        <div class="hero-copy">
+          <div class="brandbar">
+            <img src="./icon-128.png" alt="inkover" />
+            <span class="name">ink<b>over</b></span>
+          </div>
+          <div class="sharing-wrap">
+            <span class="sharing"><span class="rec"></span>画面共有中</span>
+          </div>
+          <h1>共有中の画面に、<br /><span class="hl">そのまま描き込む</span>。</h1>
+          <p class="sub">
+            「ここです」を<span class="strong">口で説明しない</span>。<br />
+            描いた線は数秒で消えます。
+          </p>
+          <div class="chips">
+            <span class="chip accent">相手にちゃんと映る</span>
+            <span class="chip">完全ローカル動作</span>
+            <span class="chip">無料・登録不要</span>
+          </div>
+        </div>
+
+        <div class="hero-stage">
+          <div class="browser">
+            <div class="chrome">
+              <span class="dot r"></span>
+              <span class="dot y"></span>
+              <span class="dot g"></span>
+              <span class="addr">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
+                会議で共有中のタブ
+              </span>
+            </div>
+            <img class="shot" src="./annotated-screen.png" alt="ダッシュボードに矢印・囲み・テキストで注釈を描き込んだ inkover の画面" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

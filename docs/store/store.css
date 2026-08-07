@@ -1,0 +1,259 @@
+/*
+ * inkover Chrome ウェブストア掲載画像 共通スタイル。
+ * 色は拡張本体 lib/theme.ts（midnight ダークテーマ）から流用。姉妹プロダクト
+ * shotcraft の掲載画像と同じトーンに揃えている。
+ * 外部リクエストなし（フォントは同梱 woff2 を @font-face で相対参照）。
+ * 各フレームは指定サイズちょうどの固定キャンバス。撮影後 24bit PNG（アルファなし）
+ * 化される前提で背景は必ず塗る。
+ */
+
+@font-face {
+  font-family: "Mochiy Pop One";
+  src: url("./fonts/MochiyPopOne-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+
+:root {
+  --bg: #0b0f19;
+  --surface: #161b26;
+  --surface-2: #1f2632;
+  --surface-hover: #232b39;
+  --border: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --text: #f2f5f9;
+  --text-muted: #9aa6b8;
+  --accent: #10b981;
+  --accent-hover: #34d399;
+  --accent-text: #04140d;
+  --ring: #38bdf8;
+
+  /* ペンのパレット（拡張本体 lib/theme.ts の PEN_COLORS と同じ） */
+  --pen-coral: #fb7185;
+  --pen-amber: #fbbf24;
+  --pen-emerald: #34d399;
+  --pen-sky: #38bdf8;
+  --pen-violet: #a78bfa;
+
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+
+  --shadow-md: 0 8px 24px rgb(0 0 0 / 45%);
+  --shadow-lg: 0 20px 50px rgb(0 0 0 / 55%);
+  --shadow-xl: 0 40px 90px rgb(0 0 0 / 62%);
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans",
+    "Noto Sans JP", system-ui, sans-serif;
+  --font-round: "Mochiy Pop One", "Hiragino Maru Gothic ProN", system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  background: var(--bg);
+}
+
+/* 撮影対象の固定キャンバス。1280x800（タイルは個別指定）。 */
+.canvas {
+  position: relative;
+  width: 1280px;
+  height: 800px;
+  overflow: hidden;
+  color: var(--text);
+  background:
+    radial-gradient(1100px 620px at 78% -12%, rgba(251, 113, 133, 0.15), transparent 58%),
+    radial-gradient(1000px 640px at 8% 108%, rgba(56, 189, 248, 0.13), transparent 60%),
+    linear-gradient(160deg, #0d1220 0%, #0b0f19 52%, #090c15 100%);
+}
+
+/* うっすらグリッドで面に質感。撮影対象の縁は塗りで満たす。 */
+.canvas::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(1200px 800px at 50% 40%, #000 30%, transparent 78%);
+  pointer-events: none;
+}
+
+/* ブランド行 */
+.brandbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.brandbar img {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  display: block;
+}
+.brandbar .name {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+.brandbar .name b {
+  color: var(--pen-coral);
+  font-weight: 800;
+}
+
+/* 見出し */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pen-coral);
+}
+.eyebrow::before {
+  content: "";
+  width: 26px;
+  height: 2px;
+  background: var(--pen-coral);
+  border-radius: 2px;
+}
+
+h1.headline {
+  margin: 0;
+  font-weight: 800;
+  line-height: 1.28;
+  letter-spacing: 0.005em;
+}
+.sub {
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+/* 実画面カード（ブラウザ風フレーム） */
+.browser {
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-xl);
+}
+.browser .chrome {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  background: #10151f;
+  border-bottom: 1px solid var(--border);
+}
+.browser .dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: block;
+}
+.browser .dot.r { background: #f87171; }
+.browser .dot.y { background: #fbbf24; }
+.browser .dot.g { background: #34d399; }
+.browser .addr {
+  margin-left: 10px;
+  flex: 1;
+  height: 22px;
+  border-radius: 999px;
+  background: #0c1019;
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.browser .addr svg { width: 13px; height: 13px; color: var(--pen-coral); }
+.browser img.shot {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* 「画面共有中」を示すバッジ。会議コンテキストを一目で伝える。 */
+.sharing {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 13px;
+  border-radius: 999px;
+  background: rgba(251, 113, 133, 0.14);
+  border: 1px solid rgba(251, 113, 133, 0.4);
+  color: #ffc4cc;
+  font-size: 13px;
+  font-weight: 700;
+}
+.sharing .rec {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--pen-coral);
+  box-shadow: 0 0 0 3px rgba(251, 113, 133, 0.22);
+}
+
+/* pill（安心バッジなど） */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 18px;
+  font-weight: 600;
+}
+.pill svg { width: 18px; height: 18px; color: var(--accent-hover); flex: 0 0 auto; }
+
+/* 注釈風の丸文字ラベル（拡張のテキストツールと同じ書体） */
+.round-note {
+  font-family: var(--font-round);
+  color: var(--pen-coral);
+  line-height: 1.4;
+}
+
+/* チップ */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 11px;
+}
+.chip {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 9px 16px;
+}
+.chip.accent {
+  color: #2b0b10;
+  background: var(--pen-coral);
+  border-color: transparent;
+  font-weight: 700;
+}

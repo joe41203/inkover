@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <title>inkover — 8 つのツール</title>
+    <link rel="stylesheet" href="./store.css" />
+    <style>
+      /* shot-3: ツール一覧。実物のツールバーを再現し、各ツールの描画例を並べる。 */
+      .wrap {
+        height: 100%;
+        padding: 0 64px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      .head h1 { font-size: 40px; margin: 18px 0 0; }
+      .head .hl { color: var(--pen-coral); }
+      .head .sub { font-size: 19px; margin: 16px 0 0; }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+        margin-top: 38px;
+      }
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-xl);
+        padding: 16px 16px 12px;
+      }
+      .card .name {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        font-size: 15px;
+        font-weight: 700;
+        margin-bottom: 12px;
+      }
+      .card .key {
+        margin-left: auto;
+        font-size: 11px;
+        font-weight: 800;
+        color: var(--text-muted);
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 2px 7px;
+        font-variant-numeric: tabular-nums;
+      }
+      .card .demo {
+        height: 88px;
+        border-radius: 10px;
+        background: #fff;
+        position: relative;
+        overflow: hidden;
+      }
+      .card .demo svg { position: absolute; inset: 0; }
+      .card .demo .txt {
+        position: absolute;
+        font-family: var(--font-round);
+        -webkit-text-stroke: 3px rgba(0, 0, 0, 0.5);
+        paint-order: stroke fill;
+      }
+
+      /* 実物のツールバー */
+      .toolbar-wrap {
+        margin-top: 40px;
+        display: flex;
+        justify-content: center;
+      }
+      .bar-ui {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow-md);
+        border-radius: 14px;
+        padding: 8px 10px;
+      }
+      .bar-ui .tool {
+        min-width: 30px; height: 28px; border-radius: 8px;
+        background: transparent; color: var(--text-muted);
+        border: 1px solid var(--border);
+        font-size: 14px; line-height: 26px; text-align: center; padding: 0 6px;
+      }
+      .bar-ui .tool.on {
+        color: var(--text); border-color: var(--ring);
+        background: rgba(56, 189, 248, 0.12);
+      }
+      .bar-ui .sw { width: 21px; height: 21px; border-radius: 50%; border: 2px solid transparent; }
+      .bar-ui .sw.on { border-color: var(--text); }
+      .bar-ui .sz {
+        min-width: 28px; height: 26px; border-radius: 8px;
+        background: transparent; color: var(--text-muted); border: 1px solid var(--border);
+        font-size: 12px; line-height: 24px; text-align: center;
+      }
+      .bar-ui .sz.on { color: var(--text); border-color: var(--ring); }
+      .bar-ui .sep { width: 1px; height: 19px; background: var(--border); margin: 0 3px; }
+      .bar-ui .btn {
+        height: 26px; padding: 0 10px; border-radius: 8px;
+        background: transparent; color: var(--text-muted); border: 1px solid var(--border);
+        font-size: 12px; line-height: 24px; white-space: nowrap;
+      }
+      .bar-ui .btn.on { color: var(--text); border-color: var(--ring); }
+    </style>
+  </head>
+  <body>
+    <div class="canvas">
+      <div class="wrap">
+        <div class="head">
+          <span class="eyebrow">8 tools</span>
+          <h1>説明に必要な道具は、<span class="hl">ひととおり</span>。</h1>
+          <p class="sub">キー 1 つで切り替え。手元を見ずに持ち替えられます。</p>
+        </div>
+
+        <div class="grid">
+          <div class="card">
+            <div class="name">ペン<span class="key">P</span></div>
+            <div class="demo">
+              <svg viewBox="0 0 260 88">
+                <path d="M 26 58 C 52 30, 74 68, 100 42 C 122 20, 148 60, 174 38 C 196 20, 218 46, 236 34
+                         L 236 42 C 216 56, 196 30, 176 48 C 150 70, 122 30, 100 52 C 74 78, 52 40, 26 66 Z"
+                      fill="#fb7185" />
+              </svg>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="name">矢印<span class="key">A</span></div>
+            <div class="demo">
+              <svg viewBox="0 0 260 88">
+                <line x1="34" y1="62" x2="196" y2="30" stroke="#fb7185" stroke-width="7" stroke-linecap="round" />
+                <polygon points="222,24 184,18 194,48" fill="#fb7185" />
+              </svg>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="name">直線<span class="key">L</span></div>
+            <div class="demo">
+              <svg viewBox="0 0 260 88">
+                <line x1="30" y1="62" x2="230" y2="26" stroke="#fb7185" stroke-width="7" stroke-linecap="round" />
+              </svg>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="name">矩形<span class="key">R</span></div>
+            <div class="demo">
+              <svg viewBox="0 0 260 88">
+                <rect x="46" y="18" width="168" height="52" fill="none" stroke="#fb7185" stroke-width="6" rx="3" />
+              </svg>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="name">楕円<span class="key">E</span></div>
+            <div class="demo">
+              <svg viewBox="0 0 260 88">
+                <ellipse cx="130" cy="44" rx="86" ry="28" fill="none" stroke="#fb7185" stroke-width="6" />
+              </svg>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="name">スポットライト<span class="key">O</span></div>
+            <div class="demo">
+              <svg viewBox="0 0 260 88">
+                <path d="M0 0 H260 V88 H0 Z M64 22 H196 V66 H64 Z"
+                      fill="rgba(3,6,12,0.55)" fill-rule="evenodd" />
+                <rect x="64" y="22" width="132" height="44" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1" />
+              </svg>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="name">テキスト<span class="key">T</span></div>
+            <div class="demo">
+              <div class="txt" style="left: 30px; top: 24px; font-size: 27px; color: #fb7185;">重要！</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="name">ステップ<span class="key">S</span></div>
+            <div class="demo">
+              <svg viewBox="0 0 260 88">
+                <circle cx="72" cy="44" r="21" fill="#fb7185" stroke="rgba(255,255,255,0.9)" stroke-width="2" />
+                <text x="72" y="53" text-anchor="middle" fill="#fff" font-family="Mochiy Pop One, sans-serif" font-size="23">1</text>
+                <circle cx="130" cy="44" r="21" fill="#fb7185" stroke="rgba(255,255,255,0.9)" stroke-width="2" />
+                <text x="130" y="53" text-anchor="middle" fill="#fff" font-family="Mochiy Pop One, sans-serif" font-size="23">2</text>
+                <circle cx="188" cy="44" r="21" fill="#fb7185" stroke="rgba(255,255,255,0.9)" stroke-width="2" />
+                <text x="188" y="53" text-anchor="middle" fill="#fff" font-family="Mochiy Pop One, sans-serif" font-size="23">3</text>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="toolbar-wrap">
+          <div class="bar-ui">
+            <div class="tool on">✎</div>
+            <div class="tool">↗</div>
+            <div class="tool">／</div>
+            <div class="tool">□</div>
+            <div class="tool">○</div>
+            <div class="tool">◐</div>
+            <div class="tool">T</div>
+            <div class="tool">①</div>
+            <div class="sep"></div>
+            <div class="sw on" style="background:#fb7185"></div>
+            <div class="sw" style="background:#fbbf24"></div>
+            <div class="sw" style="background:#34d399"></div>
+            <div class="sw" style="background:#38bdf8"></div>
+            <div class="sw" style="background:#a78bfa"></div>
+            <div class="sw" style="background:#18181b"></div>
+            <div class="sw" style="background:#fafafa"></div>
+            <div class="sep"></div>
+            <div class="sz">細</div>
+            <div class="sz on">中</div>
+            <div class="sz">太</div>
+            <div class="sep"></div>
+            <div class="btn">戻す</div>
+            <div class="btn">全消去</div>
+            <div class="btn on">消えるインク</div>
+            <div class="btn">ページ操作</div>
+            <div class="sep"></div>
+            <div class="btn">終了</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <title>inkover — プライバシー</title>
+    <link rel="stylesheet" href="./store.css" />
+    <style>
+      /* shot-5: プライバシー。権限 3 つ・外部送信なしを正面から示す。 */
+      .wrap {
+        height: 100%;
+        padding: 0 64px;
+        display: grid;
+        grid-template-columns: 1fr 480px;
+        gap: 56px;
+        align-items: center;
+      }
+      .left h1 { font-size: 41px; margin: 18px 0 0; line-height: 1.3; }
+      .left .hl { color: var(--pen-coral); }
+      .left .sub { font-size: 19px; margin: 20px 0 0; max-width: 40ch; }
+
+      .facts { margin-top: 34px; display: flex; flex-direction: column; gap: 14px; }
+      .fact {
+        display: flex;
+        align-items: flex-start;
+        gap: 13px;
+        font-size: 17px;
+        line-height: 1.6;
+        color: var(--text-muted);
+      }
+      .fact svg {
+        width: 21px; height: 21px; flex: 0 0 auto;
+        color: var(--accent-hover); margin-top: 3px;
+      }
+      .fact b { color: var(--text); font-weight: 700; }
+
+      /* 権限カード: 実際の manifest の中身をそのまま見せる */
+      .perm {
+        background: var(--surface);
+        border: 1px solid var(--border-strong);
+        border-radius: var(--radius-2xl);
+        box-shadow: var(--shadow-lg);
+        overflow: hidden;
+      }
+      .perm .hd {
+        padding: 16px 22px;
+        border-bottom: 1px solid var(--border);
+        font-size: 14px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .perm .hd svg { width: 17px; height: 17px; color: var(--accent-hover); }
+      .perm .body { padding: 8px 22px 20px; }
+      .perm .item {
+        padding: 15px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .perm .item:last-child { border-bottom: 0; }
+      .perm .k {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--pen-sky);
+      }
+      .perm .v { font-size: 13.5px; color: var(--text-muted); margin-top: 5px; line-height: 1.6; }
+      .perm .none {
+        margin: 16px 22px 20px;
+        padding: 13px 16px;
+        border-radius: var(--radius-lg);
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.32);
+        color: #a7f3d0;
+        font-size: 14px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .perm .none svg { width: 17px; height: 17px; flex: 0 0 auto; }
+    </style>
+  </head>
+  <body>
+    <div class="canvas">
+      <div class="wrap">
+        <div class="left">
+          <span class="eyebrow">Privacy</span>
+          <h1>描いた内容は、<br /><span class="hl">どこにも送りません</span>。</h1>
+          <p class="sub">
+            通信は一切しません。描いた線はブラウザのメモリの中だけに存在します。
+          </p>
+
+          <div class="facts">
+            <div class="fact">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+              <div><b>アカウント登録なし</b>。インストールしてすぐ使えます</div>
+            </div>
+            <div class="fact">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+              <div><b>閲覧履歴を読みません</b>。開いているページの内容も取得しません</div>
+            </div>
+            <div class="fact">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+              <div>保存するのは<b>ペンの色と太さだけ</b>。ブラウザ内に留まります</div>
+            </div>
+            <div class="fact">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+              <div>ソースコードは<b>すべて公開</b>しています</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="perm">
+          <div class="hd">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
+            要求する権限は 3 つだけ
+          </div>
+          <div class="body">
+            <div class="item">
+              <div class="k">activeTab</div>
+              <div class="v">アイコンを押した、そのタブだけ。ボタンを押すまで何も見ません</div>
+            </div>
+            <div class="item">
+              <div class="k">scripting</div>
+              <div class="v">押されたときに描画キャンバスを重ねるため</div>
+            </div>
+            <div class="item">
+              <div class="k">storage</div>
+              <div class="v">選んだ色と太さを次回に引き継ぐため</div>
+            </div>
+          </div>
+          <div class="none">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+            すべてのサイトへのアクセス権は要求しません
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

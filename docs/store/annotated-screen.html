@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <title>inkover — 注釈済みダッシュボード（素材）</title>
+    <style>
+      /*
+       * shot-1 と LP に埋め込む「注釈済みの共有画面」の素材。
+       * 下地は会議で共有されがちなダッシュボード、その上に inkover の描画結果を
+       * SVG で再現する。1120x700 ちょうどで撮る:
+       *
+       *   ./capture-material.sh
+       *
+       * 色は拡張本体 lib/theme.ts の PEN_COLORS と同じ値を使うこと。
+       * SVG の座標は下地のレイアウトに合わせて実測している。下地を変えたら
+       * 撮影して座標を測り直す。
+       */
+      @font-face {
+        font-family: "Mochiy Pop One";
+        src: url("./fonts/MochiyPopOne-Regular.woff2") format("woff2");
+        font-weight: 400;
+        font-display: block;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+          "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
+      }
+      .stage {
+        position: relative;
+        width: 1120px;
+        height: 700px;
+        overflow: hidden;
+        background: #f4f6fa;
+        color: #1b2430;
+      }
+
+      /* --- 下地のダッシュボード --- */
+      .top {
+        background: #fff;
+        border-bottom: 1px solid #e4e8f0;
+        padding: 13px 28px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .top .logo {
+        width: 24px; height: 24px; border-radius: 7px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      }
+      .top h1 { font-size: 14px; margin: 0; font-weight: 700; }
+      .top .who { margin-left: auto; font-size: 12px; color: #6b7688; }
+      .wrap { padding: 22px 28px; }
+      .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+      .kpi {
+        background: #fff; border: 1px solid #e4e8f0; border-radius: 11px;
+        padding: 15px 17px;
+      }
+      .kpi .label { font-size: 11px; color: #6b7688; margin-bottom: 7px; }
+      .kpi .val { font-size: 23px; font-weight: 800; letter-spacing: -0.01em; }
+      .kpi .delta { font-size: 11px; margin-top: 5px; font-weight: 600; }
+      .up { color: #059669; }
+      .down { color: #dc2626; }
+      .panel {
+        background: #fff; border: 1px solid #e4e8f0; border-radius: 11px;
+        margin-top: 16px; overflow: hidden;
+      }
+      .panel h2 {
+        font-size: 13px; margin: 0; padding: 13px 18px;
+        border-bottom: 1px solid #e4e8f0; font-weight: 700;
+      }
+      .chart { padding: 20px 18px 10px; }
+      /* 棒は px 指定にする。% だと親の高さ解決に依存して撮影時に潰れることがある。 */
+      .bars { display: flex; align-items: flex-end; gap: 16px; height: 170px; }
+      .bar { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 7px; }
+      .bar .fill {
+        width: 100%; border-radius: 5px 5px 0 0;
+        background: linear-gradient(180deg, #818cf8, #6366f1);
+      }
+      .bar.alert .fill { background: linear-gradient(180deg, #fca5a5, #ef4444); }
+      .bar .m { font-size: 10px; color: #6b7688; }
+
+      /* --- inkover の描画レイヤー --- */
+      .ink { position: absolute; inset: 0; pointer-events: none; }
+      /* テキスト注釈は拡張と同じ丸文字＋暗い縁取り */
+      .ink-text {
+        position: absolute;
+        font-family: "Mochiy Pop One", "Hiragino Maru Gothic ProN", system-ui, sans-serif;
+        font-weight: 400;
+        white-space: nowrap;
+        -webkit-text-stroke: 4px rgba(0, 0, 0, 0.55);
+        paint-order: stroke fill;
+      }
+
+      /* --- ツールバー（拡張の Shadow DOM 内 UI を再現） --- */
+      .bar-ui {
+        position: absolute;
+        bottom: 18px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        background: #1f2632;
+        border: 1px solid #2a303b;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+        border-radius: 14px;
+        padding: 7px 9px;
+        color: #f2f5f9;
+      }
+      .bar-ui .tool {
+        min-width: 28px; height: 26px; border-radius: 8px;
+        background: transparent; color: #9aa6b8;
+        border: 1px solid #2a303b;
+        font-size: 13px; line-height: 24px; text-align: center; padding: 0 5px;
+      }
+      .bar-ui .tool.on {
+        color: #f2f5f9; border-color: #38bdf8;
+        background: rgba(56, 189, 248, 0.12);
+      }
+      .bar-ui .sw {
+        width: 20px; height: 20px; border-radius: 50%;
+        border: 2px solid transparent;
+      }
+      .bar-ui .sw.on { border-color: #f2f5f9; }
+      .bar-ui .sz {
+        min-width: 26px; height: 24px; border-radius: 8px;
+        background: transparent; color: #9aa6b8; border: 1px solid #2a303b;
+        font-size: 11px; line-height: 22px; text-align: center;
+      }
+      .bar-ui .sz.on { color: #f2f5f9; border-color: #38bdf8; }
+      .bar-ui .sep { width: 1px; height: 18px; background: #2a303b; margin: 0 2px; }
+      .bar-ui .btn {
+        height: 24px; padding: 0 9px; border-radius: 8px;
+        background: transparent; color: #9aa6b8; border: 1px solid #2a303b;
+        font-size: 11px; line-height: 22px; white-space: nowrap;
+      }
+      .bar-ui .btn.on { color: #f2f5f9; border-color: #38bdf8; }
+    </style>
+  </head>
+  <body>
+    <div class="stage">
+      <!-- 下地: 共有されている画面 -->
+      <div class="top">
+        <div class="logo"></div>
+        <h1>Q3 売上ダッシュボード — 週次レビュー</h1>
+        <div class="who">共有中 · 参加者 6 名</div>
+      </div>
+      <div class="wrap">
+        <div class="kpis">
+          <div class="kpi">
+            <div class="label">今週の売上</div>
+            <div class="val">¥4,820,000</div>
+            <div class="delta up">前週比 +12.4%</div>
+          </div>
+          <div class="kpi">
+            <div class="label">新規契約</div>
+            <div class="val">38 件</div>
+            <div class="delta up">前週比 +6 件</div>
+          </div>
+          <div class="kpi">
+            <div class="label">解約率</div>
+            <div class="val">3.8%</div>
+            <div class="delta down">前週比 +1.1pt</div>
+          </div>
+          <div class="kpi">
+            <div class="label">平均単価</div>
+            <div class="val">¥126,800</div>
+            <div class="delta up">前週比 +2.0%</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>月次推移</h2>
+          <div class="chart">
+            <div class="bars">
+              <div class="bar"><div class="fill" style="height: 82px"></div><div class="m">4月</div></div>
+              <div class="bar"><div class="fill" style="height: 96px"></div><div class="m">5月</div></div>
+              <div class="bar"><div class="fill" style="height: 91px"></div><div class="m">6月</div></div>
+              <div class="bar"><div class="fill" style="height: 117px"></div><div class="m">7月</div></div>
+              <div class="bar alert"><div class="fill" style="height: 68px"></div><div class="m">8月</div></div>
+              <div class="bar"><div class="fill" style="height: 139px"></div><div class="m">9月</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- inkover の描画レイヤー -->
+      <svg class="ink" viewBox="0 0 1120 700" xmlns="http://www.w3.org/2000/svg">
+        <!-- 解約率カード（x 567-824, y 76-183）を囲む。楕円ツール・コーラル -->
+        <ellipse cx="696" cy="130" rx="139" ry="61"
+                 fill="none" stroke="#fb7185" stroke-width="5" />
+
+        <!-- 落ち込んだ 8 月の棒（x 741-900, y 345-420）を矩形で囲む。アンバー -->
+        <rect x="733" y="338" width="175" height="90"
+              fill="none" stroke="#fbbf24" stroke-width="4" rx="3" />
+
+        <!-- テキストから 8 月の棒へ矢印。アンバー -->
+        <line x1="560" y1="512" x2="716" y2="428"
+              stroke="#fbbf24" stroke-width="6" stroke-linecap="round" />
+        <polygon points="736,417 700,414 712,444" fill="#fbbf24" />
+
+        <!-- 9 月の棒（x 915-1073）の下に手描きの下線。
+             perfect-freehand は筆圧で太さが変わるので、中央が太い閉ポリゴンで再現する。 -->
+        <path d="M 918 447 C 950 442, 990 449, 1030 444 C 1050 441, 1064 445, 1072 443
+                 L 1072 452 C 1062 456, 1048 452, 1028 456 C 988 462, 948 454, 918 456 Z"
+              fill="#34d399" />
+
+        <!-- ステップバッジ 1: 今週の売上カードの脇 -->
+        <circle cx="272" cy="88" r="19" fill="#fb7185" stroke="rgba(255,255,255,0.9)" stroke-width="2" />
+        <text x="272" y="96" text-anchor="middle" fill="#fff"
+              font-family="Mochiy Pop One, sans-serif" font-size="21">1</text>
+
+        <!-- ステップバッジ 2: 解約率カードの左上 -->
+        <circle cx="576" cy="66" r="19" fill="#fb7185" stroke="rgba(255,255,255,0.9)" stroke-width="2" />
+        <text x="576" y="74" text-anchor="middle" fill="#fff"
+              font-family="Mochiy Pop One, sans-serif" font-size="21">2</text>
+      </svg>
+
+      <!-- テキスト注釈（拡張の text ツール相当） -->
+      <div class="ink">
+        <div class="ink-text" style="left: 348px; top: 496px; font-size: 27px; color: #fbbf24;">ここが原因</div>
+        <div class="ink-text" style="left: 916px; top: 466px; font-size: 25px; color: #34d399;">9月は回復</div>
+      </div>
+
+      <!-- ツールバー -->
+      <div class="bar-ui">
+        <div class="tool">✎</div>
+        <div class="tool on">↗</div>
+        <div class="tool">／</div>
+        <div class="tool">□</div>
+        <div class="tool">○</div>
+        <div class="tool">◐</div>
+        <div class="tool">T</div>
+        <div class="tool">①</div>
+        <div class="sep"></div>
+        <div class="sw on" style="background:#fb7185"></div>
+        <div class="sw" style="background:#fbbf24"></div>
+        <div class="sw" style="background:#34d399"></div>
+        <div class="sw" style="background:#38bdf8"></div>
+        <div class="sw" style="background:#a78bfa"></div>
+        <div class="sw" style="background:#18181b"></div>
+        <div class="sw" style="background:#fafafa"></div>
+        <div class="sep"></div>
+        <div class="sz">細</div>
+        <div class="sz on">中</div>
+        <div class="sz">太</div>
+        <div class="sep"></div>
+        <div class="btn">戻す</div>
+        <div class="btn">全消去</div>
+        <div class="btn on">消えるインク</div>
+        <div class="btn">ページ操作</div>
+        <div class="sep"></div>
+        <div class="btn">終了</div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <title>inkover — 小プロモタイル</title>
+    <link rel="stylesheet" href="./store.css" />
+    <style>
+      /* 440x280 の小プロモタイル。アイコン＋ロゴタイプ＋一言コピー。 */
+      .canvas {
+        width: 440px;
+        height: 280px;
+        display: grid;
+        place-items: center;
+        background:
+          radial-gradient(420px 260px at 82% -14%, rgba(251, 113, 133, 0.22), transparent 62%),
+          radial-gradient(380px 240px at 6% 112%, rgba(56, 189, 248, 0.15), transparent 62%),
+          linear-gradient(160deg, #0d1220 0%, #0b0f19 54%, #090c15 100%);
+      }
+      .canvas::before { background-size: 30px 30px; }
+      .inner {
+        position: relative;
+        text-align: center;
+        padding: 0 26px;
+      }
+      .inner img {
+        width: 62px; height: 62px; border-radius: 16px;
+        box-shadow: var(--shadow-md);
+        display: block; margin: 0 auto 15px;
+      }
+      .logo {
+        font-size: 33px;
+        font-weight: 800;
+        letter-spacing: 0.012em;
+        line-height: 1;
+      }
+      .logo b { color: var(--pen-coral); font-weight: 800; }
+      .copy {
+        margin-top: 13px;
+        font-size: 14.5px;
+        color: var(--text-muted);
+        font-weight: 600;
+        line-height: 1.6;
+      }
+      /* 装飾: 手描きの下線をロゴの直下に添える。
+         ロゴに重ねると取り消し線に見えるので、必ず下に離す。 */
+      .underline {
+        display: block;
+        margin: 7px auto 0;
+        width: 172px;
+        height: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="canvas">
+      <div class="inner">
+        <img src="./icon-128.png" alt="inkover" />
+        <div class="logo">ink<b>over</b></div>
+        <svg class="underline" viewBox="0 0 172 12">
+          <path d="M 5 6 C 34 3, 72 9, 106 5 C 130 2, 152 7, 167 4
+                   L 167 9 C 150 12, 130 8, 106 11 C 72 15, 34 9, 5 11 Z"
+                fill="#fb7185" />
+        </svg>
+        <div class="copy">共有中の画面に、そのまま描き込む</div>
+      </div>
+    </div>
+  </body>
+</html>
