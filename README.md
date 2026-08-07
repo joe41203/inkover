@@ -1,6 +1,6 @@
 # inkover
 
-[![version](https://img.shields.io/badge/version-0.1.0-fb7185)](https://github.com/joe41203/inkover/releases)
+![version](https://img.shields.io/badge/version-0.1.0-fb7185)
 [![license](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
 
 画面共有中のページに、そのまま描き込めるペン。
