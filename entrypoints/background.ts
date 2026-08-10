@@ -1,4 +1,5 @@
 import type { Message } from "@/lib/messages";
+import { isRestrictedUrl } from "@/lib/restricted-url";
 
 /**
  * アイコンクリックで描画オーバーレイを注入する。
@@ -24,35 +25,9 @@ export default defineBackground(() => {
 	});
 });
 
-/**
- * 拡張が動作できないページか判定する。
- *
- * chrome:// 系・Chrome Web Store・PDF ビューアには content script を注入できない。
- * executeScript は例外を投げるだけで理由が分かりにくいので、先に弾いて
- * ユーザーへ説明できるようにする。
- */
-function isRestrictedUrl(url: string | undefined): boolean {
-	if (!url) return true;
-	return (
-		url.startsWith("chrome://") ||
-		url.startsWith("chrome-extension://") ||
-		url.startsWith("edge://") ||
-		url.startsWith("about:") ||
-		url.startsWith("devtools://") ||
-		url.startsWith("view-source:") ||
-		url.startsWith("https://chromewebstore.google.com/") ||
-		url.startsWith("https://chrome.google.com/webstore")
-	);
-}
-
 async function toggleOverlay(tabId: number, url: string | undefined) {
 	if (isRestrictedUrl(url)) {
-		// 注入できないページ。バッジで理由を示す（アラートはページを止めるので使わない）。
-		await browser.action.setBadgeText({ tabId, text: "✕" });
-		await browser.action.setBadgeBackgroundColor({ tabId, color: "#8a94a6" });
-		setTimeout(() => {
-			void browser.action.setBadgeText({ tabId, text: "" });
-		}, 2000);
+		await showUnavailable(tabId);
 		return;
 	}
 
@@ -63,12 +38,19 @@ async function toggleOverlay(tabId: number, url: string | undefined) {
 			files: ["/content-scripts/overlay.js"],
 		});
 	} catch (err) {
+		// chrome:// や PDF ビューアなど、注入が許されないページはここで落ちる。
 		console.error("[inkover] 注入に失敗しました", err);
-		await browser.action.setBadgeText({ tabId, text: "✕" });
-		setTimeout(() => {
-			void browser.action.setBadgeText({ tabId, text: "" });
-		}, 2000);
+		await showUnavailable(tabId);
 	}
+}
+
+/** このページでは使えないことをバッジで知らせる（アラートはページを止めるので使わない）。 */
+async function showUnavailable(tabId: number) {
+	await browser.action.setBadgeText({ tabId, text: "✕" });
+	await browser.action.setBadgeBackgroundColor({ tabId, color: "#8a94a6" });
+	setTimeout(() => {
+		void browser.action.setBadgeText({ tabId, text: "" });
+	}, 2000);
 }
 
 async function setBadge(tabId: number, active: boolean) {

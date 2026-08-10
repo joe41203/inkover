@@ -542,7 +542,14 @@ async function startOverlay(
 		}
 
 		const p = pointFrom(e);
-		canvas.setPointerCapture(e.pointerId);
+		// キャンバス外へドラッグしても追従させる。ただし pointerId が既に
+		// 解放されている場合など NotFoundError を投げることがあるため、
+		// 失敗しても描画は続行する（捕捉できなくても描けはする）。
+		try {
+			canvas.setPointerCapture(e.pointerId);
+		} catch {
+			// キャプチャできなくても描画自体には影響しない
+		}
 
 		if (tool === "pen") {
 			draft = {
