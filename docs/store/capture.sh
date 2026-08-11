@@ -38,6 +38,9 @@ for n in shot-1 shot-2 shot-3 shot-4 shot-5; do
 done
 shot tile 440 280
 
+# 番外（ストアは 5 枚までなので掲載していない）。LP や記事で使えるよう撮っておく。
+shot _shot-2-fading 1280 800
+
 # LP 側にも同じ素材を配る
 cp "${DIR}/annotated-screen.png" "${DIR}/../../site/screen-annotated.png"
 cp "${DIR}/shot-1.png" "${DIR}/../../site/og.png"

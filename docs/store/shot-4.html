@@ -2,10 +2,10 @@
 <html lang="ja">
   <head>
     <meta charset="utf-8" />
-    <title>inkover — 画面共有で相手に映る</title>
+    <title>inkover — スクロール追従と PNG 保存</title>
     <link rel="stylesheet" href="./store.css" />
     <style>
-      /* shot-4: 画面共有との関係。自分の画面と相手の画面を並べて「同じものが映る」を示す。 */
+      /* shot-4: スクロールしても貼り付く／描画込みで保存できる、の 2 点。 */
       .wrap {
         height: 100%;
         padding: 0 64px;
@@ -13,151 +13,191 @@
         flex-direction: column;
         justify-content: center;
       }
-      .head h1 { font-size: 40px; margin: 18px 0 0; }
+      .head h1 { font-size: 38px; margin: 18px 0 0; line-height: 1.34; }
       .head .hl { color: var(--pen-coral); }
-      .head .sub { font-size: 19px; margin: 16px 0 0; max-width: 66ch; }
 
-      .pair {
+      .cols {
         display: grid;
-        grid-template-columns: 1fr 132px 1fr;
-        align-items: center;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
         margin-top: 40px;
       }
-      .side .cap {
+      .col .cap {
         display: flex;
         align-items: center;
         gap: 10px;
-        font-size: 15px;
-        font-weight: 700;
-        margin-bottom: 13px;
-        color: var(--text-muted);
+        margin-bottom: 14px;
       }
-      .side .cap .who { color: var(--text); }
-      .screen {
+      .col .cap .t { font-size: 17px; font-weight: 800; }
+      .col .cap .k {
+        font-size: 11px;
+        font-weight: 800;
+        color: var(--text-muted);
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 3px 8px;
+      }
+      .col .d { font-size: 15px; color: var(--text-muted); margin: 0 0 16px; line-height: 1.65; }
+
+      /* 左: スクロール追従を 2 コマで示す */
+      .pair { display: flex; gap: 14px; align-items: center; }
+      .mini {
         position: relative;
-        height: 250px;
-        border-radius: var(--radius-xl);
+        width: 244px;
+        height: 268px;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #fff;
+        border: 1px solid var(--border-strong);
+        box-shadow: var(--shadow-md);
+      }
+      .mini .rows { padding: 16px 14px; }
+      .mini .row { height: 9px; border-radius: 4px; background: #e7ebf3; margin-bottom: 9px; }
+      .mini .row.w1 { width: 72%; }
+      .mini .row.w2 { width: 92%; }
+      .mini .card2 {
+        margin-top: 10px; height: 74px; border-radius: 9px;
+        background: linear-gradient(135deg, #eef1f8, #e4e9f4);
+        border: 1px solid #dfe4ee;
+      }
+      .mini svg { position: absolute; inset: 0; }
+      .mini .tag {
+        position: absolute; top: 8px; right: 10px;
+        font-size: 10px; font-weight: 700;
+        color: var(--text-muted);
+        background: rgba(15,20,32,.72);
+        border: 1px solid var(--border);
+        border-radius: 6px; padding: 2px 7px;
+      }
+      .arrow { color: var(--pen-coral); display: grid; place-items: center; }
+      .arrow svg { width: 30px; height: 30px; }
+
+      /* 右: 保存されるファイルのイメージ */
+      .file {
+        position: relative;
+        border-radius: 14px;
         overflow: hidden;
         background: #fff;
         border: 1px solid var(--border-strong);
         box-shadow: var(--shadow-lg);
       }
-      .screen .rows { padding: 20px 18px; }
-      .screen .row { height: 10px; border-radius: 4px; background: #e7ebf3; margin-bottom: 10px; }
-      .screen .row.w1 { width: 70%; }
-      .screen .row.w2 { width: 90%; }
-      .screen .card2 {
-        margin-top: 14px; height: 104px; border-radius: 10px;
+      .file .bar2 {
+        height: 30px; background: #10151f;
+        display: flex; align-items: center; gap: 8px; padding: 0 12px;
+        border-bottom: 1px solid var(--border);
+        font-size: 11px; color: var(--text-muted);
+      }
+      .file .dot { width: 9px; height: 9px; border-radius: 50%; }
+      .file .body { position: relative; height: 236px; }
+      .file .rows { padding: 16px 16px; }
+      .file .row { height: 10px; border-radius: 4px; background: #e7ebf3; margin-bottom: 10px; }
+      .file .row.w1 { width: 68%; }
+      .file .row.w2 { width: 90%; }
+      .file .card2 {
+        margin-top: 12px; height: 96px; border-radius: 10px;
         background: linear-gradient(135deg, #eef1f8, #e4e9f4);
         border: 1px solid #dfe4ee;
       }
-      .screen svg { position: absolute; inset: 0; }
-      .screen .note {
-        position: absolute;
-        left: 52px; top: 158px;
+      .file svg { position: absolute; inset: 0; }
+      .file .note {
+        position: absolute; left: 52px; top: 142px;
         font-family: var(--font-round);
-        font-size: 22px;
-        color: var(--pen-coral);
-        -webkit-text-stroke: 3px rgba(0, 0, 0, 0.5);
+        font-size: 20px; color: var(--pen-coral);
+        -webkit-text-stroke: 3px rgba(0,0,0,.5);
         paint-order: stroke fill;
       }
-      /* 相手側は会議アプリのフレームを被せる */
-      .screen.remote::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        border: 3px solid rgba(251, 113, 133, 0.55);
-        border-radius: var(--radius-xl);
-        pointer-events: none;
-      }
-
-      .arrow-mid {
-        display: grid;
-        place-items: center;
-        color: var(--pen-coral);
-      }
-      .arrow-mid svg { width: 46px; height: 46px; }
-      .arrow-mid .lbl {
-        font-size: 12px;
-        font-weight: 800;
+      .filename {
+        margin-top: 12px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 13px;
         color: var(--text-muted);
-        margin-top: 8px;
-        white-space: nowrap;
+        display: flex; align-items: center; gap: 8px;
       }
-
-      .foot {
-        margin-top: 34px;
-        display: flex;
-        gap: 14px;
-        align-items: center;
-      }
-      .foot .pill { font-size: 16px; padding: 9px 16px; }
-      .foot .pill svg { color: var(--pen-coral); }
+      .filename svg { width: 15px; height: 15px; color: var(--pen-emerald); }
     </style>
   </head>
   <body>
     <div class="canvas">
       <div class="wrap">
         <div class="head">
-          <span class="eyebrow">Screen sharing</span>
-          <h1>描いたものは、<span class="hl">ちゃんと相手にも映る</span>。</h1>
-          <p class="sub">
-            画面共有はブラウザが描いた結果をそのまま送るので、拡張が描いた線もページの一部として届きます。相手側に何かを入れてもらう必要はありません。
-          </p>
+          <span class="eyebrow">Stays put · Saves out</span>
+          <h1>スクロールしても<span class="hl">ついてくる</span>。<br />そのまま画像で<span class="hl">残せる</span>。</h1>
         </div>
 
-        <div class="pair">
-          <div class="side">
-            <div class="cap"><span class="sharing"><span class="rec"></span>共有中</span><span class="who">自分の画面</span></div>
-            <div class="screen">
-              <div class="rows">
-                <div class="row w2"></div>
-                <div class="row w1"></div>
-                <div class="card2"></div>
+        <div class="cols">
+          <div class="col">
+            <div class="cap"><span class="t">スクロール追従</span></div>
+            <p class="d">長いページでも、描いた印はその場所に貼り付いたままです。</p>
+            <div class="pair">
+              <div class="mini">
+                <div class="tag">上のほう</div>
+                <div class="rows">
+                  <div class="row w2"></div>
+                  <div class="row w1"></div>
+                  <div class="card2"></div>
+                  <div class="row w2" style="margin-top:14px"></div>
+                  <div class="row w1"></div>
+                </div>
+                <svg viewBox="0 0 244 268">
+                  <ellipse cx="128" cy="112" rx="80" ry="34" fill="none" stroke="#fb7185" stroke-width="4" />
+                </svg>
               </div>
-              <svg viewBox="0 0 490 250">
-                <ellipse cx="300" cy="176" rx="128" ry="46" fill="none" stroke="#fb7185" stroke-width="5" />
-                <line x1="80" y1="96" x2="196" y2="146" stroke="#fb7185" stroke-width="5" stroke-linecap="round" />
-                <polygon points="214,155 178,146 190,126" fill="#fb7185" />
-              </svg>
-              <div class="note">ここ</div>
+
+              <div class="arrow">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 5v14" /><path d="M6 13l6 6 6-6" />
+                </svg>
+              </div>
+
+              <div class="mini">
+                <div class="tag">スクロール後</div>
+                <div class="rows">
+                  <div class="row w1"></div>
+                  <div class="card2" style="margin-top:0"></div>
+                  <div class="row w2" style="margin-top:14px"></div>
+                  <div class="row w1"></div>
+                  <div class="row w2"></div>
+                </div>
+                <svg viewBox="0 0 244 268">
+                  <!-- 同じ要素に貼り付いたまま上へ移動している -->
+                  <ellipse cx="128" cy="58" rx="80" ry="34" fill="none" stroke="#fb7185" stroke-width="4" />
+                </svg>
+              </div>
             </div>
           </div>
 
-          <div class="arrow-mid">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M5 12h13" /><path d="M13 6l6 6-6 6" />
-            </svg>
-            <div class="lbl">そのまま届く</div>
-          </div>
-
-          <div class="side">
-            <div class="cap"><span class="who">相手が見ている画面</span></div>
-            <div class="screen remote">
-              <div class="rows">
-                <div class="row w2"></div>
-                <div class="row w1"></div>
-                <div class="card2"></div>
+          <div class="col">
+            <div class="cap"><span class="t">PNG 保存</span><span class="k">Cmd / Ctrl + S</span></div>
+            <p class="d">議事録に貼れる形で、描き込みごと書き出せます。</p>
+            <div class="file">
+              <div class="bar2">
+                <span class="dot" style="background:#f87171"></span>
+                <span class="dot" style="background:#fbbf24"></span>
+                <span class="dot" style="background:#34d399"></span>
+                <span style="margin-left:6px">保存された画像</span>
               </div>
-              <svg viewBox="0 0 490 250">
-                <ellipse cx="300" cy="176" rx="128" ry="46" fill="none" stroke="#fb7185" stroke-width="5" />
-                <line x1="80" y1="96" x2="196" y2="146" stroke="#fb7185" stroke-width="5" stroke-linecap="round" />
-                <polygon points="214,155 178,146 190,126" fill="#fb7185" />
-              </svg>
-              <div class="note">ここ</div>
+              <div class="body">
+                <div class="rows">
+                  <div class="row w2"></div>
+                  <div class="row w1"></div>
+                  <div class="card2"></div>
+                </div>
+                <svg viewBox="0 0 560 236">
+                  <rect x="176" y="118" width="220" height="76" fill="none" stroke="#fbbf24" stroke-width="4" rx="3" />
+                  <line x1="92" y1="176" x2="160" y2="150" stroke="#fbbf24" stroke-width="5" stroke-linecap="round" />
+                  <polygon points="176,144 146,142 156,166" fill="#fbbf24" />
+                  <circle cx="440" cy="86" r="17" fill="#fb7185" stroke="rgba(255,255,255,0.9)" stroke-width="2" />
+                  <text x="440" y="93" text-anchor="middle" fill="#fff" font-family="Mochiy Pop One, sans-serif" font-size="19">1</text>
+                </svg>
+                <div class="note">ここ</div>
+              </div>
+            </div>
+            <div class="filename">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+              inkover-20260811-140233.png
             </div>
           </div>
-        </div>
-
-        <div class="foot">
-          <span class="pill">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2" /><path d="M8 21h8" /><path d="M12 18v3" /></svg>
-            タブ共有・ウィンドウ共有・画面全体共有のすべてで映ります
-          </span>
-          <span class="pill">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4" /><path d="M12 18v4" /><circle cx="12" cy="12" r="4" /></svg>
-            相手のインストールは不要
-          </span>
         </div>
       </div>
     </div>
