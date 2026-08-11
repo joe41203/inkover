@@ -6,6 +6,7 @@ import {
 	loadImage,
 } from "@/lib/export";
 import { canvasSizeFor, captureScale, toCanvasPoint } from "@/lib/geometry";
+import { detectMeetingService } from "@/lib/meeting";
 import {
 	type CaptureResponse,
 	DEFAULT_PREFS,
@@ -232,8 +233,10 @@ async function startOverlay(
       border: 1px solid ${theme.border};
       box-shadow: 0 8px 24px rgba(0,0,0,.45);
       font: 12px/2 ${theme.fontSans};
-      padding: 3px 14px; border-radius: 10px;
+      padding: 6px 16px; border-radius: 10px;
       pointer-events: none;
+      max-width: min(560px, calc(100vw - 48px));
+      text-align: center;
       opacity: 0;
       transition: opacity .18s ease, transform .18s ease;
     }
@@ -657,11 +660,14 @@ async function startOverlay(
 	}
 
 	/** 一時的なメッセージを出す。alert はページを止めるので使わない。 */
-	function showToast(text: string): void {
+	function showToast(text: string, durationMs = 2600): void {
 		toast.textContent = text;
 		toast.classList.add("show");
 		clearTimeout(toastTimer);
-		toastTimer = window.setTimeout(() => toast.classList.remove("show"), 2600);
+		toastTimer = window.setTimeout(
+			() => toast.classList.remove("show"),
+			durationMs,
+		);
 	}
 
 	function undo(): void {
@@ -1043,6 +1049,13 @@ async function startOverlay(
 	resize();
 	onReady(cleanup);
 	send({ type: "OVERLAY_OPENED" });
+
+	// 会議ツールそのものの上で描いても、共有されているのは別タブなので相手には
+	// 映らない。気づいてもらうために起動時だけ案内を出す。
+	const meeting = detectMeetingService(location.href);
+	if (meeting) {
+		showToast(`${meeting.label}を開いています。${meeting.tip}`, 6000);
+	}
 
 	// フォントは非同期に読み込まれる。届いたら描き直して字形を差し替える
 	// （待たずに起動するのは、ペンなど文字を使わない操作を遅らせないため）。
