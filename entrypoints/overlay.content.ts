@@ -12,6 +12,8 @@ import {
 	type Message,
 	type PenPrefs,
 	PREFS_KEY,
+	rememberToolStyle,
+	styleForTool,
 } from "@/lib/messages";
 import {
 	DEFAULT_FADE_MS,
@@ -120,22 +122,27 @@ async function startOverlay(
 ): Promise<void> {
 	const prefs = await loadPrefs();
 
+	let stored = prefs;
+	let tool: ShapeKind = (prefs.toolKind as ShapeKind) ?? "pen";
+	const initial = styleForTool(prefs, tool);
 	let color =
-		PEN_COLORS.find((c) => c.id === prefs.colorId)?.value ??
+		PEN_COLORS.find((c) => c.id === initial.colorId)?.value ??
 		PEN_COLORS[0].value;
 	let size =
-		PEN_SIZES.find((s) => s.id === prefs.sizeId)?.value ?? PEN_SIZES[1].value;
+		PEN_SIZES.find((s) => s.id === initial.sizeId)?.value ?? PEN_SIZES[1].value;
 	let fadeMs = prefs.fadeMs;
-	let tool: ShapeKind = (prefs.toolKind as ShapeKind) ?? "pen";
 	/** false のときはページ操作モード（クリックがページへ抜ける）。 */
 	let drawing = true;
 
 	function persist(): void {
 		const colorId = PEN_COLORS.find((c) => c.value === color)?.id ?? "coral";
 		const sizeId = PEN_SIZES.find((s) => s.value === size)?.id ?? "m";
-		void browser.storage.local.set({
-			[PREFS_KEY]: { colorId, sizeId, fadeMs, toolKind: tool },
+		// 選択中のツールに紐づけて覚える。次にそのツールへ戻ったとき復元される。
+		stored = rememberToolStyle({ ...stored, fadeMs, toolKind: tool }, tool, {
+			colorId,
+			sizeId,
 		});
+		void browser.storage.local.set({ [PREFS_KEY]: stored });
 	}
 
 	// --- DOM 構築（Shadow DOM でページ CSS から隔離する） ---
@@ -395,6 +402,11 @@ async function startOverlay(
 		// テキスト入力中に別ツールへ移ると入力が宙に浮くので確定させる
 		commitText();
 		tool = next;
+		// そのツールで最後に使った色・太さがあれば戻す
+		const style = styleForTool(stored, next);
+		color =
+			PEN_COLORS.find((c) => c.id === style.colorId)?.value ?? color;
+		size = PEN_SIZES.find((s) => s.id === style.sizeId)?.value ?? size;
 		syncPressed();
 		updateHint();
 		persist();
