@@ -26,9 +26,10 @@ describe("ツール定義", () => {
 		expect(ACTION_KEYS.clear).toContain("Backspace");
 	});
 
-	it("shotcraft と同じキー割り当てにする", () => {
-		// 両拡張を行き来しても手が迷わないようにするため
-		const expected: Record<string, string> = {
+	it("shotcraft と共通のツールは同じキー割り当てにする", () => {
+		// 両拡張を行き来しても手が迷わないようにするため。
+		// inkover 固有のツール（レーザーなど）はこの表に無い。
+		const shared: Record<string, string> = {
 			pen: "p",
 			arrow: "a",
 			line: "l",
@@ -39,8 +40,15 @@ describe("ツール定義", () => {
 			step: "s",
 		};
 		for (const t of TOOLS) {
-			expect(t.key).toBe(expected[t.kind]);
+			const key = shared[t.kind];
+			if (key) expect(t.key).toBe(key);
 		}
+	});
+
+	it("inkover 固有のツールも重複しないキーを持つ", () => {
+		const laser = TOOLS.find((t) => t.kind === "laser");
+		expect(laser).toBeDefined();
+		expect(laser?.key).toBe("w");
 	});
 
 	it("キーからツールを引ける（大文字小文字を問わない）", () => {

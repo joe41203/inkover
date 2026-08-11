@@ -13,7 +13,11 @@ import {
 	outlineToPath,
 	type Shape,
 	shapeOpacity,
+	dropExpiredLaser,
 	isOffscreen,
+	LASER_TRAIL_MS,
+	type LaserPoint,
+	laserOpacity,
 	scrollOffset,
 	stepRadius,
 	toFreehandInput,
@@ -310,5 +314,45 @@ describe("isOffscreen", () => {
 			scroll: { x: 0, y: 0 },
 		};
 		expect(isOffscreen(spot, { x: 0, y: -5000 }, viewport)).toBe(false);
+	});
+});
+
+describe("レーザーポインター", () => {
+	const lp = (t: number): LaserPoint => ({
+		x: 10,
+		y: 20,
+		t,
+		scroll: { x: 0, y: 0 },
+	});
+
+	it("打った直後は最も濃い", () => {
+		expect(laserOpacity(lp(1000), 1000)).toBe(1);
+	});
+
+	it("時間とともに薄くなる", () => {
+		const half = laserOpacity(lp(0), LASER_TRAIL_MS / 2);
+		expect(half).toBeGreaterThan(0);
+		expect(half).toBeLessThan(1);
+	});
+
+	it("線形より早く落ちる（二乗カーブ）", () => {
+		// 半分の時点で 0.5 より小さければ、早めに薄くなっている
+		expect(laserOpacity(lp(0), LASER_TRAIL_MS / 2)).toBeLessThan(0.5);
+	});
+
+	it("寿命を過ぎたら完全に消える", () => {
+		expect(laserOpacity(lp(0), LASER_TRAIL_MS)).toBe(0);
+		expect(laserOpacity(lp(0), LASER_TRAIL_MS * 3)).toBe(0);
+	});
+
+	it("消えた点だけ捨てる", () => {
+		const now = LASER_TRAIL_MS + 100;
+		const points = [lp(0), lp(now - 50), lp(now)];
+		const alive = dropExpiredLaser(points, now);
+		expect(alive).toHaveLength(2);
+	});
+
+	it("すべて消えたら空になる（rAF を止められる）", () => {
+		expect(dropExpiredLaser([lp(0), lp(10)], LASER_TRAIL_MS * 2)).toHaveLength(0);
 	});
 });

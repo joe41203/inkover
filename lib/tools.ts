@@ -77,6 +77,13 @@ export const TOOLS: ToolDef[] = [
 		key: "s",
 		hint: "クリックで連番バッジ",
 	},
+	{
+		kind: "laser",
+		label: "レーザー",
+		short: "•",
+		key: "w",
+		hint: "ドラッグした軌跡が一瞬で消える。線を残さず指したいときに",
+	},
 ];
 
 /**

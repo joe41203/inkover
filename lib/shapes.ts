@@ -14,6 +14,12 @@ export type InputPoint = {
 
 export type Point = { x: number; y: number };
 
+/**
+ * ツールの種別。
+ *
+ * `laser` だけは Shape として保存されない（軌跡が短時間で消えるため、
+ * 別の配列で管理する）。ツール選択の識別子としてここに含めている。
+ */
 export type ShapeKind =
 	| "pen"
 	| "arrow"
@@ -22,7 +28,8 @@ export type ShapeKind =
 	| "ellipse"
 	| "text"
 	| "spotlight"
-	| "step";
+	| "step"
+	| "laser";
 
 type Base = {
 	id: number;
@@ -238,6 +245,46 @@ export function nextStepIndex(shapes: Shape[]): number {
  */
 export function isClick(from: Point, to: Point, threshold = 4): boolean {
 	return Math.hypot(to.x - from.x, to.y - from.y) < threshold;
+}
+
+// --- レーザーポインター ---
+
+/**
+ * レーザーの軌跡を構成する点。
+ *
+ * 図形（Shape）とは寿命の考え方が違う。図形は「描き終えてから fadeMs」で
+ * 消えるが、レーザーは点ごとに独立して短時間で消える。分けて持つ。
+ */
+export type LaserPoint = {
+	x: number;
+	y: number;
+	/** この点が打たれた時刻（ms）。 */
+	t: number;
+	/** 打たれた時点のスクロール位置。図形と同じく追従させる。 */
+	scroll: { x: number; y: number };
+};
+
+/** レーザーの軌跡が消えるまでの時間（ms）。短いほど「指した瞬間」に集中する。 */
+export const LASER_TRAIL_MS = 550;
+/** 先端の光点の半径（CSS px）。 */
+export const LASER_HEAD_RADIUS = 9;
+
+/** 経過時間から軌跡の不透明度を返す（新しいほど濃い）。 */
+export function laserOpacity(point: LaserPoint, now: number): number {
+	const age = now - point.t;
+	if (age <= 0) return 1;
+	if (age >= LASER_TRAIL_MS) return 0;
+	// 線形だと最後まで見えすぎるので、二乗で早めに落とす
+	const t = 1 - age / LASER_TRAIL_MS;
+	return t * t;
+}
+
+/** 消えた点を捨てる。 */
+export function dropExpiredLaser(
+	points: LaserPoint[],
+	now: number,
+): LaserPoint[] {
+	return points.filter((p) => laserOpacity(p, now) > 0);
 }
 
 // --- スクロール追従 ---

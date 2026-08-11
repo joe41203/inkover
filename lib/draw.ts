@@ -10,6 +10,9 @@ import {
 	arrowHead,
 	arrowShaftEnd,
 	isOffscreen,
+	LASER_HEAD_RADIUS,
+	type LaserPoint,
+	laserOpacity,
 	normalizeRect,
 	outlineToPath,
 	type Shape,
@@ -218,6 +221,78 @@ function drawStep(
 	ctx.textBaseline = "middle";
 	// 数字は視覚的な中心が少し下にずれるので補正する
 	ctx.fillText(String(index), at.x, at.y + r * 0.06);
+}
+
+/**
+ * レーザーポインターの軌跡を描く。
+ *
+ * 図形と違い、点ごとに独立して消えていく。先端だけ光点を重ねて
+ * 「いま指している場所」を強調する。
+ */
+export function drawLaser(
+	points: LaserPoint[],
+	color: string,
+	dc: DrawContext,
+): void {
+	if (points.length === 0) return;
+	const { ctx } = dc;
+
+	ctx.save();
+	ctx.lineCap = "round";
+	ctx.lineJoin = "round";
+
+	// 軌跡: 隣り合う点をつなぎ、古いほど細く薄くする
+	for (let i = 1; i < points.length; i++) {
+		const prev = points[i - 1];
+		const cur = points[i];
+		if (!prev || !cur) continue;
+		const opacity = laserOpacity(cur, dc.now);
+		if (opacity <= 0) continue;
+
+		const po = {
+			x: prev.scroll.x - dc.scroll.x,
+			y: prev.scroll.y - dc.scroll.y,
+		};
+		const co = { x: cur.scroll.x - dc.scroll.x, y: cur.scroll.y - dc.scroll.y };
+
+		ctx.globalAlpha = opacity * 0.85;
+		ctx.strokeStyle = color;
+		ctx.lineWidth = 3 + opacity * 4;
+		ctx.beginPath();
+		ctx.moveTo(prev.x + po.x, prev.y + po.y);
+		ctx.lineTo(cur.x + co.x, cur.y + co.y);
+		ctx.stroke();
+	}
+
+	// 先端の光点。周囲にぼかしを掛けて「光っている」感じを出す。
+	const head = points[points.length - 1];
+	if (head && laserOpacity(head, dc.now) > 0) {
+		const off = {
+			x: head.scroll.x - dc.scroll.x,
+			y: head.scroll.y - dc.scroll.y,
+		};
+		const x = head.x + off.x;
+		const y = head.y + off.y;
+
+		ctx.globalAlpha = 0.35;
+		ctx.fillStyle = color;
+		ctx.beginPath();
+		ctx.arc(x, y, LASER_HEAD_RADIUS * 2.2, 0, Math.PI * 2);
+		ctx.fill();
+
+		ctx.globalAlpha = 1;
+		ctx.beginPath();
+		ctx.arc(x, y, LASER_HEAD_RADIUS, 0, Math.PI * 2);
+		ctx.fill();
+
+		// 中心を白く抜くと光源らしく見える
+		ctx.fillStyle = "rgba(255,255,255,0.9)";
+		ctx.beginPath();
+		ctx.arc(x, y, LASER_HEAD_RADIUS * 0.42, 0, Math.PI * 2);
+		ctx.fill();
+	}
+
+	ctx.restore();
 }
 
 /** テキスト入力中のカーソル位置を示す枠を描く（確定前のプレビュー用）。 */

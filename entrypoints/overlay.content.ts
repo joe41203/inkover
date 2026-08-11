@@ -1,4 +1,4 @@
-import { drawShape, drawTextCaret } from "@/lib/draw";
+import { drawLaser, drawShape, drawTextCaret } from "@/lib/draw";
 import {
 	canvasToPngBlob,
 	downloadBlob,
@@ -18,8 +18,10 @@ import {
 	dropFaded,
 	hasAnimating,
 	type InputPoint,
+	dropExpiredLaser,
 	isClick,
 	isTwoPoint,
+	type LaserPoint,
 	nextStepIndex,
 	type Point,
 	type Shape,
@@ -312,6 +314,7 @@ async function startOverlay(
 	clearBtn.addEventListener("click", () => {
 		commitText();
 		shapes.length = 0;
+		laser.length = 0;
 		requestRender();
 	});
 
@@ -445,6 +448,10 @@ async function startOverlay(
 	let rafId = 0;
 	let pending = false;
 	let shiftHeld = false;
+	/** レーザーをドラッグ中か。 */
+	let laserActive = false;
+	/** レーザーの軌跡。図形とは寿命が違うので別に持つ。 */
+	const laser: LaserPoint[] = [];
 	/** PNG 書き出し中は多重実行を防ぐ。 */
 	let exporting = false;
 	let toastTimer = 0;
@@ -482,6 +489,16 @@ async function startOverlay(
 		};
 		for (const shape of shapes) drawShape(shape, dc);
 		if (draft) drawShape(draft, dc);
+
+		// レーザーは図形の上に重ねる（いま指している場所を最前面に）
+		if (laser.length > 0) {
+			const alive = dropExpiredLaser(laser, now);
+			if (alive.length !== laser.length) {
+				laser.length = 0;
+				laser.push(...alive);
+			}
+			drawLaser(laser, color, dc);
+		}
 		if (textInput) {
 			// 入力中のテキストと点滅カーソルを重ねる
 			drawShape(
@@ -507,7 +524,7 @@ async function startOverlay(
 		}
 
 		// フェード中・入力中なら次フレームも回す。何も動いていなければ止めて CPU を使わない。
-		if (draft || textInput || hasAnimating(shapes, now, fadeMs)) {
+		if (draft || textInput || laser.length > 0 || hasAnimating(shapes, now, fadeMs)) {
 			pending = true;
 			rafId = requestAnimationFrame(render);
 		}
@@ -672,6 +689,13 @@ async function startOverlay(
 			// キャプチャできなくても描画自体には影響しない
 		}
 
+		if (tool === "laser") {
+			laser.push({ x: p.x, y: p.y, t: performance.now(), scroll: currentScroll() });
+			laserActive = true;
+			requestRender();
+			return;
+		}
+
 		if (tool === "pen") {
 			draft = {
 				id: nextId++,
@@ -713,6 +737,18 @@ async function startOverlay(
 	};
 
 	const onPointerMove = (e: PointerEvent): void => {
+		if (laserActive) {
+			e.preventDefault();
+			const lp = pointFrom(e);
+			laser.push({
+				x: lp.x,
+				y: lp.y,
+				t: performance.now(),
+				scroll: currentScroll(),
+			});
+			requestRender();
+			return;
+		}
 		if (!draft) return;
 		e.preventDefault();
 		const p = pointFrom(e);
@@ -736,6 +772,11 @@ async function startOverlay(
 	};
 
 	const onPointerUp = (e: PointerEvent): void => {
+		if (laserActive) {
+			laserActive = false;
+			requestRender();
+			return;
+		}
 		if (!draft) return;
 		e.preventDefault();
 
@@ -856,6 +897,7 @@ async function startOverlay(
 			e.preventDefault();
 			e.stopPropagation();
 			shapes.length = 0;
+			laser.length = 0;
 			requestRender();
 			return;
 		}

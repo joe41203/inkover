@@ -157,6 +157,19 @@ async function main() {
 		await sleep(200);
 		check("全消去でキャンバスが空になる", (await page.eval(COUNT_PAINTED)) === 0);
 
+		// --- レーザーポインター ---
+		await page.eval(keyExpr("Delete"));
+		await page.eval(keyExpr("w"));
+		await page.eval(dragExpr({ from: [200, 300], to: [600, 400], pointerId: 51 }));
+		await sleep(80);
+		const laserPainted = await page.eval(COUNT_PAINTED);
+		check("レーザーの軌跡が描かれる", laserPainted > 200, `不透明ピクセル: ${laserPainted}`);
+		// 軌跡は短時間で消える（LASER_TRAIL_MS = 550ms）
+		await sleep(1000);
+		const laserGone = await page.eval(COUNT_PAINTED);
+		check("レーザーは一瞬で消える", laserGone === 0, `残存ピクセル: ${laserGone}`);
+		await page.eval(keyExpr("p"));
+
 		// --- PNG 書き出し ---
 		// 実際のダウンロードは検証しづらいので、合成キャンバスが正しい寸法で
 		// 作られるところまでを確かめる（captureVisibleTab はスタブで代替）。
