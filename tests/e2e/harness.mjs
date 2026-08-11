@@ -45,6 +45,8 @@ export async function launch({ extensionPath, url, port = 9455 }) {
 			`--user-data-dir=${profile}`,
 			`--remote-debugging-port=${port}`,
 			`--load-extension=${extensionPath}`,
+			// これが無いとプリインストール拡張だけが動き、対象が読み込まれない
+			`--disable-extensions-except=${extensionPath}`,
 			`--disable-extensions-except=${extensionPath}`,
 			"--no-first-run",
 			"--no-default-browser-check",
