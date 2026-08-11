@@ -13,6 +13,8 @@ import {
 	outlineToPath,
 	type Shape,
 	shapeOpacity,
+	isOffscreen,
+	scrollOffset,
 	stepRadius,
 	toFreehandInput,
 } from "@/lib/shapes";
@@ -27,6 +29,7 @@ const pen = (finishedAt: number | null, id = 1): Shape => ({
 		{ x: 10, y: 10, pressure: 0.5 },
 	],
 	finishedAt,
+	scroll: { x: 0, y: 0 },
 });
 
 describe("shapeOpacity", () => {
@@ -173,6 +176,7 @@ describe("nextStepIndex", () => {
 		at: { x: 0, y: 0 },
 		index,
 		finishedAt: 0,
+		scroll: { x: 0, y: 0 },
 	});
 
 	it("最初は 1", () => {
@@ -224,5 +228,87 @@ describe("toFreehandInput / outlineToPath", () => {
 				[10, 10],
 			]),
 		).toBe("M 0.00 0.00 L 10.00 0.00 L 10.00 10.00 Z");
+	});
+});
+
+describe("scrollOffset", () => {
+	const at = (sx: number, sy: number): Shape => ({
+		...pen(0),
+		scroll: { x: sx, y: sy },
+	});
+
+	it("スクロールしていなければ動かさない", () => {
+		expect(scrollOffset(at(0, 0), { x: 0, y: 0 })).toEqual({ x: 0, y: 0 });
+	});
+
+	it("下へスクロールした分だけ上へずらす", () => {
+		// ページを 200px 下げたら、図形は 200px 上に描かれて元の位置に留まる
+		expect(scrollOffset(at(0, 0), { x: 0, y: 200 })).toEqual({ x: 0, y: -200 });
+	});
+
+	it("スクロール済みの位置で描いた図形も正しく追従する", () => {
+		expect(scrollOffset(at(0, 500), { x: 0, y: 300 })).toEqual({
+			x: 0,
+			y: 200,
+		});
+	});
+
+	it("横スクロールも扱える", () => {
+		expect(scrollOffset(at(100, 0), { x: 250, y: 0 })).toEqual({
+			x: -150,
+			y: 0,
+		});
+	});
+});
+
+describe("isOffscreen", () => {
+	const viewport = { width: 1000, height: 800 };
+	const line = (x1: number, y1: number, x2: number, y2: number): Shape => ({
+		id: 1,
+		kind: "line",
+		color: "#fff",
+		size: 8,
+		from: { x: x1, y: y1 },
+		to: { x: x2, y: y2 },
+		finishedAt: 0,
+		scroll: { x: 0, y: 0 },
+	});
+
+	it("画面内なら描画対象", () => {
+		expect(
+			isOffscreen(line(100, 100, 300, 300), { x: 0, y: 0 }, viewport),
+		).toBe(false);
+	});
+
+	it("上に大きくスクロールして画面外へ出たら省略する", () => {
+		expect(
+			isOffscreen(line(100, 100, 300, 200), { x: 0, y: -2000 }, viewport),
+		).toBe(true);
+	});
+
+	it("下へ出た場合も省略する", () => {
+		expect(
+			isOffscreen(line(100, 100, 300, 200), { x: 0, y: 2000 }, viewport),
+		).toBe(true);
+	});
+
+	it("境界付近は余白を見て残す（線幅の分はみ出すため）", () => {
+		expect(
+			isOffscreen(line(100, 790, 300, 795), { x: 0, y: 0 }, viewport),
+		).toBe(false);
+	});
+
+	it("スポットライトは画面全体を覆うので常に描く", () => {
+		const spot: Shape = {
+			id: 2,
+			kind: "spotlight",
+			color: "#fff",
+			size: 8,
+			from: { x: 0, y: 0 },
+			to: { x: 10, y: 10 },
+			finishedAt: 0,
+			scroll: { x: 0, y: 0 },
+		};
+		expect(isOffscreen(spot, { x: 0, y: -5000 }, viewport)).toBe(false);
 	});
 });

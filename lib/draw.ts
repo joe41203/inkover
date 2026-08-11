@@ -9,10 +9,12 @@ import { getStroke } from "perfect-freehand";
 import {
 	arrowHead,
 	arrowShaftEnd,
+	isOffscreen,
 	normalizeRect,
 	outlineToPath,
 	type Shape,
 	shapeOpacity,
+	scrollOffset,
 	stepRadius,
 	toFreehandInput,
 } from "@/lib/shapes";
@@ -25,14 +27,24 @@ export type DrawContext = {
 	height: number;
 	now: number;
 	fadeMs: number | null;
+	/** 現在のスクロール位置。図形はページ座標で持つのでここで差分を取る。 */
+	scroll: { x: number; y: number };
 };
 
 export function drawShape(shape: Shape, dc: DrawContext): void {
 	const opacity = shapeOpacity(shape, dc.now, dc.fadeMs);
 	if (opacity <= 0) return;
 
+	// 描いた時点からスクロールした分だけずらす。これで図形がページに貼り付く。
+	const off = scrollOffset(shape, dc.scroll);
+	if (isOffscreen(shape, off, { width: dc.width, height: dc.height })) return;
+
 	const { ctx } = dc;
 	ctx.save();
+	// スポットライトは画面全体を覆う効果なのでスクロールで動かさない
+	if (shape.kind !== "spotlight" && (off.x !== 0 || off.y !== 0)) {
+		ctx.translate(off.x, off.y);
+	}
 	ctx.globalAlpha = opacity;
 	ctx.strokeStyle = shape.color;
 	ctx.fillStyle = shape.color;

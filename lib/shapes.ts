@@ -31,6 +31,13 @@ type Base = {
 	size: number;
 	/** 描き終えた時刻（ms）。描画中は null。フェードの起点。 */
 	finishedAt: number | null;
+	/**
+	 * 描いた時点のスクロール位置。
+	 *
+	 * 座標はページ基準で保持し、描画時に現在のスクロール量との差を引く。
+	 * これによりスクロールしても図形が同じ要素に貼り付いて見える。
+	 */
+	scroll: { x: number; y: number };
 };
 
 export type PenShape = Base & { kind: "pen"; points: InputPoint[] };
@@ -231,4 +238,68 @@ export function nextStepIndex(shapes: Shape[]): number {
  */
 export function isClick(from: Point, to: Point, threshold = 4): boolean {
 	return Math.hypot(to.x - from.x, to.y - from.y) < threshold;
+}
+
+// --- スクロール追従 ---
+
+/**
+ * 図形を描くときの平行移動量を返す。
+ *
+ * 図形は「描いた時点のスクロール位置」を持つので、現在位置との差だけ
+ * ずらして描けば、ページ上の同じ場所に留まって見える。
+ */
+export function scrollOffset(
+	shape: Shape,
+	current: { x: number; y: number },
+): Point {
+	return {
+		x: shape.scroll.x - current.x,
+		y: shape.scroll.y - current.y,
+	};
+}
+
+/**
+ * 図形がビューポートから完全に外れたか。
+ *
+ * 外れたものは描画を省ける。スクロールの多いページで図形が溜まっても
+ * フレーム時間が伸びないようにするための枝刈り。
+ */
+export function isOffscreen(
+	shape: Shape,
+	offset: Point,
+	viewport: { width: number; height: number },
+): boolean {
+	// 線幅と、テキスト・バッジのはみ出しを考慮した余白
+	const margin = Math.max(shape.size * 2, 60);
+	const ys: number[] = [];
+	const xs: number[] = [];
+
+	if (shape.kind === "pen") {
+		for (const p of shape.points) {
+			xs.push(p.x);
+			ys.push(p.y);
+		}
+	} else if (shape.kind === "text" || shape.kind === "step") {
+		xs.push(shape.at.x);
+		ys.push(shape.at.y);
+	} else {
+		xs.push(shape.from.x, shape.to.x);
+		ys.push(shape.from.y, shape.to.y);
+	}
+	if (xs.length === 0) return false;
+
+	// スポットライトは画面全体を覆うので、範囲外判定から除く
+	if (shape.kind === "spotlight") return false;
+
+	const minX = Math.min(...xs) + offset.x;
+	const maxX = Math.max(...xs) + offset.x;
+	const minY = Math.min(...ys) + offset.y;
+	const maxY = Math.max(...ys) + offset.y;
+
+	return (
+		maxX < -margin ||
+		minX > viewport.width + margin ||
+		maxY < -margin ||
+		minY > viewport.height + margin
+	);
 }

@@ -87,7 +87,14 @@ async function ensureAnnotationFont(): Promise<void> {
 
 async function loadPrefs(): Promise<PenPrefs> {
 	try {
-		const stored = await browser.storage.local.get(PREFS_KEY);
+		// storage が応答しない環境でも起動を止めない。設定は次善のもの（既定値）で
+		// よく、ここで待ち続けるとオーバーレイが一切出なくなる方が損失が大きい。
+		const stored = await Promise.race([
+			browser.storage.local.get(PREFS_KEY),
+			new Promise<Record<string, unknown>>((resolve) =>
+				setTimeout(() => resolve({}), 1000),
+			),
+		]);
 		const value = stored[PREFS_KEY];
 		if (value && typeof value === "object") {
 			return { ...DEFAULT_PREFS, ...(value as Partial<PenPrefs>) };
@@ -403,10 +410,17 @@ async function startOverlay(
 	let draft: Shape | null = null;
 	/** テキスト入力中のバッファ。null なら入力していない。 */
 	let textInput: { at: Point; text: string } | null = null;
+	/** テキスト入力を始めた時点のスクロール位置。確定時に図形へ引き継ぐ。 */
+	let textInputScroll = { x: 0, y: 0 };
 	let nextId = 1;
 	let rafId = 0;
 	let pending = false;
 	let shiftHeld = false;
+
+	/** 現在のスクロール位置。図形はページ座標で持ち、描画時に差を取る。 */
+	function currentScroll(): { x: number; y: number } {
+		return { x: window.scrollX, y: window.scrollY };
+	}
 
 	function requestRender(): void {
 		if (pending) return;
@@ -432,6 +446,7 @@ async function startOverlay(
 			height: window.innerHeight,
 			now,
 			fadeMs,
+			scroll: currentScroll(),
 		};
 		for (const shape of shapes) drawShape(shape, dc);
 		if (draft) drawShape(draft, dc);
@@ -447,6 +462,7 @@ async function startOverlay(
 					text: textInput.text,
 					fontSize: textFontSize(),
 					finishedAt: null,
+					scroll: textInputScroll,
 				},
 				dc,
 			);
@@ -501,6 +517,7 @@ async function startOverlay(
 				text: value,
 				fontSize: textFontSize(),
 				finishedAt: performance.now(),
+				scroll: textInputScroll,
 			});
 		}
 		updateHint();
@@ -559,6 +576,7 @@ async function startOverlay(
 				size,
 				points: [p],
 				finishedAt: null,
+				scroll: currentScroll(),
 			};
 		} else if (isTwoPoint(tool)) {
 			draft = {
@@ -569,6 +587,7 @@ async function startOverlay(
 				from: { x: p.x, y: p.y },
 				to: { x: p.x, y: p.y },
 				finishedAt: null,
+				scroll: currentScroll(),
 			};
 		} else if (tool === "step") {
 			shapes.push({
@@ -579,9 +598,11 @@ async function startOverlay(
 				at: { x: p.x, y: p.y },
 				index: nextStepIndex(shapes),
 				finishedAt: performance.now(),
+				scroll: currentScroll(),
 			});
 		} else if (tool === "text") {
 			textInput = { at: { x: p.x, y: p.y }, text: "" };
+			textInputScroll = currentScroll();
 			updateHint();
 		}
 		requestRender();
@@ -752,6 +773,12 @@ async function startOverlay(
 
 	const onResize = (): void => resize();
 
+	/**
+	 * スクロール追従。図形はページ座標で持っているので、位置が変われば
+	 * 描き直すだけで貼り付いて見える。
+	 */
+	const onScroll = (): void => requestRender();
+
 	// --- 後片付け ---
 
 	function cleanup(): void {
@@ -763,6 +790,7 @@ async function startOverlay(
 		window.removeEventListener("keydown", onKeyDown, true);
 		window.removeEventListener("keyup", onKeyUp, true);
 		window.removeEventListener("resize", onResize);
+		window.removeEventListener("scroll", onScroll, true);
 		host.remove();
 		onDispose();
 		send({ type: "OVERLAY_CLOSED" });
@@ -775,6 +803,7 @@ async function startOverlay(
 	window.addEventListener("keydown", onKeyDown, true);
 	window.addEventListener("keyup", onKeyUp, true);
 	window.addEventListener("resize", onResize);
+	window.addEventListener("scroll", onScroll, { passive: true, capture: true });
 
 	document.documentElement.appendChild(host);
 	syncPressed();

@@ -10,7 +10,10 @@
     "zip": "wxt zip",
     "compile": "tsc --noEmit",
     "test": "vitest run",
-    "postinstall": "wxt prepare"
+    "e2e": "pnpm build && node tests/e2e/overlay.e2e.mjs",
+    "e2e:headed": "pnpm build && E2E_HEADED=1 node tests/e2e/overlay.e2e.mjs",
+    "postinstall": "wxt prepare",
+    "latency": "pnpm build && node tests/e2e/latency.e2e.mjs"
   },
   "devDependencies": {
     "typescript": "^7.0.2",
