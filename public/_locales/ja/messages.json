@@ -1,0 +1,86 @@
+{
+  "extName": {
+    "message": "inkover",
+    "description": "拡張機能の名前"
+  },
+  "extDescription": {
+    "message": "画面共有中のページにそのまま描き込めるペン。描いた線は数秒で消える。完全ローカル動作",
+    "description": "ストアとブラウザに表示される説明"
+  },
+  "commandToggle": {
+    "message": "描画モードを切り替える"
+  },
+
+  "toolPen": { "message": "ペン" },
+  "toolArrow": { "message": "矢印" },
+  "toolLine": { "message": "直線" },
+  "toolRect": { "message": "矩形" },
+  "toolEllipse": { "message": "楕円" },
+  "toolSpotlight": { "message": "スポットライト" },
+  "toolText": { "message": "テキスト" },
+  "toolStep": { "message": "ステップ" },
+  "toolLaser": { "message": "レーザー" },
+
+  "hintPen": { "message": "ドラッグで手描き" },
+  "hintArrow": { "message": "ドラッグで矢印 / Shift で角度を 45 度刻み" },
+  "hintLine": { "message": "ドラッグで直線 / Shift で角度を 45 度刻み" },
+  "hintRect": { "message": "ドラッグで矩形 / Shift で正方形" },
+  "hintEllipse": { "message": "ドラッグで楕円 / Shift で正円" },
+  "hintSpotlight": { "message": "ドラッグした範囲以外を暗くする" },
+  "hintText": { "message": "クリックして入力 / Enter で確定 / Shift+Enter で改行" },
+  "hintStep": { "message": "クリックで連番バッジ" },
+  "hintLaser": { "message": "ドラッグした軌跡が一瞬で消える。線を残さず指したいときに" },
+
+  "sizeSmall": { "message": "細" },
+  "sizeMedium": { "message": "中" },
+  "sizeLarge": { "message": "太" },
+
+  "colorCoral": { "message": "コーラル" },
+  "colorAmber": { "message": "アンバー" },
+  "colorEmerald": { "message": "エメラルド" },
+  "colorSky": { "message": "スカイ" },
+  "colorViolet": { "message": "バイオレット" },
+  "colorBlack": { "message": "黒" },
+  "colorWhite": { "message": "白" },
+
+  "btnUndo": { "message": "戻す" },
+  "btnUndoTitle": { "message": "取り消し (Cmd/Ctrl+Z)" },
+  "btnClear": { "message": "全消去" },
+  "btnClearTitle": { "message": "全消去 (Delete)" },
+  "btnSave": { "message": "PNG保存" },
+  "btnSaveTitle": { "message": "描画込みでこの画面を保存 (Cmd/Ctrl+S)" },
+  "btnFade": { "message": "消えるインク" },
+  "btnFadeTitle": { "message": "一定時間で自動的に消す (F)" },
+  "btnPageMode": { "message": "ページ操作" },
+  "btnDrawMode": { "message": "描画に戻る" },
+  "btnModeTitle": { "message": "ページを操作する (H)" },
+  "btnClose": { "message": "終了" },
+  "btnCloseTitle": { "message": "終了 (Esc)" },
+
+  "hintSuffix": { "message": "Esc で終了" },
+  "hintPageMode": { "message": "ページを操作できます / H または「描画に戻る」で復帰 / Esc で終了" },
+  "hintTexting": { "message": "入力して Enter で確定 / Shift+Enter で改行 / Esc で取り消し" },
+  "hintMoving": { "message": "Alt+ドラッグ: 直前に描いたものを動かす" },
+
+  "toastSaved": { "message": "PNG を保存しました" },
+  "toastSaveFailed": { "message": "保存できませんでした" },
+  "toastSaveFailedWith": {
+    "message": "保存できませんでした（$reason$）",
+    "placeholders": {
+      "reason": { "content": "$1" }
+    }
+  },
+  "toastMeeting": {
+    "message": "$service$を開いています。$tip$",
+    "placeholders": {
+      "service": { "content": "$1" },
+      "tip": { "content": "$2" }
+    }
+  },
+  "meetingTip": {
+    "message": "共有するタブでこの拡張を起動してください（会議の画面ではなく、共有したいページ側で使います）"
+  },
+  "meetingTipSlack": {
+    "message": "ハドルで画面共有するときは、共有したいページのタブで起動してください"
+  }
+}

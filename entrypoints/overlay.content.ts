@@ -6,6 +6,7 @@ import {
 	loadImage,
 } from "@/lib/export";
 import { canvasSizeFor, captureScale, toCanvasPoint } from "@/lib/geometry";
+import { t } from "@/lib/i18n";
 import { detectMeetingService } from "@/lib/meeting";
 import {
 	type CaptureResponse,
@@ -39,6 +40,8 @@ import {
 	TOOLS,
 	toolByKey,
 	toolByKind,
+	toolHint,
+	toolLabel,
 } from "@/lib/tools";
 
 /**
@@ -278,7 +281,7 @@ async function startOverlay(
 		const b = document.createElement("button");
 		b.className = "tool";
 		b.textContent = t.short;
-		b.title = `${t.label} (${t.key.toUpperCase()})`;
+		b.title = `${toolLabel(t)} (${t.key.toUpperCase()})`;
 		b.setAttribute("aria-pressed", String(t.kind === tool));
 		b.addEventListener("click", () => setTool(t.kind));
 		return { el: b, kind: t.kind };
@@ -289,7 +292,7 @@ async function startOverlay(
 		const b = document.createElement("button");
 		b.className = "swatch";
 		b.style.background = c.value;
-		b.title = c.label;
+		b.title = t(c.labelKey);
 		b.setAttribute("aria-pressed", String(c.value === color));
 		b.addEventListener("click", () => {
 			color = c.value;
@@ -303,7 +306,7 @@ async function startOverlay(
 	const sizeButtons = PEN_SIZES.map((s) => {
 		const b = document.createElement("button");
 		b.className = "size";
-		b.textContent = s.label;
+		b.textContent = t(s.labelKey);
 		b.setAttribute("aria-pressed", String(s.value === size));
 		b.addEventListener("click", () => {
 			size = s.value;
@@ -315,14 +318,14 @@ async function startOverlay(
 
 	const undoBtn = document.createElement("button");
 	undoBtn.className = "btn";
-	undoBtn.textContent = "戻す";
-	undoBtn.title = "取り消し (Cmd/Ctrl+Z)";
+	undoBtn.textContent = t("btnUndo");
+	undoBtn.title = t("btnUndoTitle");
 	undoBtn.addEventListener("click", () => undo());
 
 	const clearBtn = document.createElement("button");
 	clearBtn.className = "btn";
-	clearBtn.textContent = "全消去";
-	clearBtn.title = "全消去 (E)";
+	clearBtn.textContent = t("btnClear");
+	clearBtn.title = t("btnClearTitle");
 	clearBtn.addEventListener("click", () => {
 		commitText();
 		shapes.length = 0;
@@ -332,28 +335,28 @@ async function startOverlay(
 
 	const saveBtn = document.createElement("button");
 	saveBtn.className = "btn";
-	saveBtn.textContent = "PNG保存";
-	saveBtn.title = "描画込みでこの画面を保存 (Cmd/Ctrl+S)";
+	saveBtn.textContent = t("btnSave");
+	saveBtn.title = t("btnSaveTitle");
 	saveBtn.addEventListener("click", () => void exportPng());
 
 	const fadeBtn = document.createElement("button");
 	fadeBtn.className = "btn";
-	fadeBtn.textContent = "消えるインク";
-	fadeBtn.title = "一定時間で自動的に消す (F)";
+	fadeBtn.textContent = t("btnFade");
+	fadeBtn.title = t("btnFadeTitle");
 	fadeBtn.setAttribute("aria-pressed", String(fadeMs !== null));
 	fadeBtn.addEventListener("click", () => toggleFade());
 
 	const modeBtn = document.createElement("button");
 	modeBtn.className = "btn";
-	modeBtn.textContent = "ページ操作";
-	modeBtn.title = "ページを操作する (H)";
+	modeBtn.textContent = t("btnPageMode");
+	modeBtn.title = t("btnModeTitle");
 	modeBtn.setAttribute("aria-pressed", "false");
 	modeBtn.addEventListener("click", () => setDrawing(!drawing));
 
 	const closeBtn = document.createElement("button");
 	closeBtn.className = "btn";
-	closeBtn.textContent = "終了";
-	closeBtn.title = "終了 (Esc)";
+	closeBtn.textContent = t("btnClose");
+	closeBtn.title = t("btnCloseTitle");
 	closeBtn.addEventListener("click", () => cleanup());
 
 	const sep = () => {
@@ -388,19 +391,17 @@ async function startOverlay(
 
 	function updateHint(): void {
 		if (!drawing) {
-			hint.textContent =
-				"ページを操作できます / H または「描画に戻る」で復帰 / Esc で終了";
+			hint.textContent = t("hintPageMode");
 			return;
 		}
 		if (textInput) {
-			hint.textContent =
-				"入力して Enter で確定 / Shift+Enter で改行 / Esc で取り消し";
+			hint.textContent = t("hintTexting");
 			return;
 		}
 		const def = toolByKind(tool);
 		hint.textContent = def
-			? `${def.label}: ${def.hint} / Esc で終了`
-			: "Esc で終了";
+			? `${toolLabel(def)}: ${toolHint(def)} / ${t("hintSuffix")}`
+			: t("hintSuffix");
 	}
 
 	function setTool(next: ShapeKind): void {
@@ -431,7 +432,7 @@ async function startOverlay(
 		drawing = next;
 		canvas.classList.toggle("passthrough", !drawing);
 		modeBtn.setAttribute("aria-pressed", String(!drawing));
-		modeBtn.textContent = drawing ? "ページ操作" : "描画に戻る";
+		modeBtn.textContent = drawing ? t("btnPageMode") : t("btnDrawMode");
 		syncPressed();
 		updateHint();
 	}
@@ -619,7 +620,7 @@ async function startOverlay(
 			})) as CaptureResponse | undefined;
 
 			if (!res?.ok) {
-				showToast(`保存できませんでした（${res?.error ?? "不明なエラー"}）`);
+				showToast(t("toastSaveFailedWith", [res?.error ?? "unknown"]));
 				return;
 			}
 
@@ -638,7 +639,7 @@ async function startOverlay(
 			out.height = shot.naturalHeight;
 			const octx = out.getContext("2d");
 			if (!octx) {
-				showToast("保存できませんでした（キャンバスを作れません）");
+				showToast(t("toastSaveFailed"));
 				return;
 			}
 			octx.drawImage(shot, 0, 0);
@@ -648,10 +649,10 @@ async function startOverlay(
 
 			const blob = await canvasToPngBlob(out);
 			downloadBlob(blob, exportFilename(new Date()));
-			showToast("PNG を保存しました");
+			showToast(t("toastSaved"));
 		} catch (err) {
 			console.error("[inkover] 書き出しに失敗しました", err);
-			showToast("保存できませんでした");
+			showToast(t("toastSaveFailed"));
 		} finally {
 			bar.style.visibility = "";
 			hint.style.visibility = "";
@@ -918,7 +919,7 @@ async function startOverlay(
 
 		if (e.key === "Alt" && shapes.length > 0 && !moving) {
 			// 直前の図形を動かせることを伝える
-			hint.textContent = "Alt+ドラッグ: 直前に描いたものを動かす";
+			hint.textContent = t("hintMoving");
 			canvas.style.cursor = "grab";
 			return;
 		}
@@ -1054,7 +1055,7 @@ async function startOverlay(
 	// 映らない。気づいてもらうために起動時だけ案内を出す。
 	const meeting = detectMeetingService(location.href);
 	if (meeting) {
-		showToast(`${meeting.label}を開いています。${meeting.tip}`, 6000);
+		showToast(t("toastMeeting", [meeting.label, t(meeting.tipKey)]), 6000);
 	}
 
 	// フォントは非同期に読み込まれる。届いたら描き直して字形を差し替える

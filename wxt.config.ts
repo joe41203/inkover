@@ -2,9 +2,10 @@ import { defineConfig } from "wxt";
 
 export default defineConfig({
 	manifest: {
-		name: "inkover",
-		description:
-			"画面共有中のページにそのまま描き込めるペン。描いた線は数秒で消える。完全ローカル動作",
+		// _locales の messages.json から引く（default_locale は en）
+		default_locale: "en",
+		name: "__MSG_extName__",
+		description: "__MSG_extDescription__",
 		permissions: ["activeTab", "scripting", "storage"],
 		icons: {
 			16: "/icon/16.png",
@@ -22,7 +23,7 @@ export default defineConfig({
 		commands: {
 			_execute_action: {
 				suggested_key: { default: "Alt+Shift+D" },
-				description: "描画モードを切り替える",
+				description: "__MSG_commandToggle__",
 			},
 		},
 		// テキスト注釈フォントは content script（ページ側の文脈）から参照するため、

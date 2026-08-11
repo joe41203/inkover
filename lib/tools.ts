@@ -9,80 +9,92 @@
  * 衝突しうるので、修飾キー押下時とテキスト入力中は content script 側で無視する。
  */
 
+import { t } from "@/lib/i18n";
 import type { ShapeKind } from "@/lib/shapes";
 
 export type ToolDef = {
 	kind: ShapeKind;
-	label: string;
-	/** ツールバーに出す短いラベル。アイコンの代わり。 */
+	/** _locales のキー。表示時に t() で引く。 */
+	labelKey: string;
+	hintKey: string;
+	/** ツールバーに出す短いラベル。アイコンの代わり（言語非依存）。 */
 	short: string;
 	key: string;
-	hint: string;
 };
+
+/** 表示用のラベルを引く。 */
+export function toolLabel(tool: ToolDef): string {
+	return t(tool.labelKey);
+}
+
+/** 表示用のヒントを引く。 */
+export function toolHint(tool: ToolDef): string {
+	return t(tool.hintKey);
+}
 
 export const TOOLS: ToolDef[] = [
 	{
 		kind: "pen",
-		label: "ペン",
+		labelKey: "toolPen",
+		hintKey: "hintPen",
 		short: "✎",
 		key: "p",
-		hint: "ドラッグで手描き",
 	},
 	{
 		kind: "arrow",
-		label: "矢印",
+		labelKey: "toolArrow",
+		hintKey: "hintArrow",
 		short: "↗",
 		key: "a",
-		hint: "ドラッグで矢印 / Shift で角度を 45 度刻み",
 	},
 	{
 		kind: "line",
-		label: "直線",
+		labelKey: "toolLine",
+		hintKey: "hintLine",
 		short: "／",
 		key: "l",
-		hint: "ドラッグで直線 / Shift で角度を 45 度刻み",
 	},
 	{
 		kind: "rect",
-		label: "矩形",
+		labelKey: "toolRect",
+		hintKey: "hintRect",
 		short: "□",
 		key: "r",
-		hint: "ドラッグで矩形 / Shift で正方形",
 	},
 	{
 		kind: "ellipse",
-		label: "楕円",
+		labelKey: "toolEllipse",
+		hintKey: "hintEllipse",
 		short: "○",
 		key: "e",
-		hint: "ドラッグで楕円 / Shift で正円",
 	},
 	{
 		kind: "spotlight",
-		label: "スポットライト",
+		labelKey: "toolSpotlight",
+		hintKey: "hintSpotlight",
 		short: "◐",
 		key: "o",
-		hint: "ドラッグした範囲以外を暗くする",
 	},
 	{
 		kind: "text",
-		label: "テキスト",
+		labelKey: "toolText",
+		hintKey: "hintText",
 		short: "T",
 		key: "t",
-		hint: "クリックして入力 / Enter で確定 / Shift+Enter で改行",
 	},
 	{
 		kind: "step",
-		label: "ステップ",
+		labelKey: "toolStep",
+		hintKey: "hintStep",
 		short: "①",
 		key: "s",
-		hint: "クリックで連番バッジ",
 	},
 	{
 		kind: "laser",
-		label: "レーザー",
+		labelKey: "toolLaser",
+		hintKey: "hintLaser",
 		short: "•",
 		key: "w",
-		hint: "ドラッグした軌跡が一瞬で消える。線を残さず指したいときに",
 	},
 ];
 

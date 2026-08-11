@@ -1,0 +1,86 @@
+{
+  "extName": {
+    "message": "inkover",
+    "description": "Extension name"
+  },
+  "extDescription": {
+    "message": "Draw right on the page you're sharing. Your ink fades away on its own. Runs entirely on your machine.",
+    "description": "Shown in the store and the browser"
+  },
+  "commandToggle": {
+    "message": "Toggle drawing mode"
+  },
+
+  "toolPen": { "message": "Pen" },
+  "toolArrow": { "message": "Arrow" },
+  "toolLine": { "message": "Line" },
+  "toolRect": { "message": "Rectangle" },
+  "toolEllipse": { "message": "Ellipse" },
+  "toolSpotlight": { "message": "Spotlight" },
+  "toolText": { "message": "Text" },
+  "toolStep": { "message": "Step" },
+  "toolLaser": { "message": "Laser" },
+
+  "hintPen": { "message": "Drag to draw freehand" },
+  "hintArrow": { "message": "Drag to draw an arrow / hold Shift to snap to 45°" },
+  "hintLine": { "message": "Drag to draw a line / hold Shift to snap to 45°" },
+  "hintRect": { "message": "Drag to draw a rectangle / hold Shift for a square" },
+  "hintEllipse": { "message": "Drag to draw an ellipse / hold Shift for a circle" },
+  "hintSpotlight": { "message": "Dim everything outside the area you drag" },
+  "hintText": { "message": "Click to type / Enter to confirm / Shift+Enter for a new line" },
+  "hintStep": { "message": "Click to drop a numbered badge" },
+  "hintLaser": { "message": "The trail vanishes instantly — for pointing without leaving a mark" },
+
+  "sizeSmall": { "message": "S" },
+  "sizeMedium": { "message": "M" },
+  "sizeLarge": { "message": "L" },
+
+  "colorCoral": { "message": "Coral" },
+  "colorAmber": { "message": "Amber" },
+  "colorEmerald": { "message": "Emerald" },
+  "colorSky": { "message": "Sky" },
+  "colorViolet": { "message": "Violet" },
+  "colorBlack": { "message": "Black" },
+  "colorWhite": { "message": "White" },
+
+  "btnUndo": { "message": "Undo" },
+  "btnUndoTitle": { "message": "Undo (Cmd/Ctrl+Z)" },
+  "btnClear": { "message": "Clear" },
+  "btnClearTitle": { "message": "Clear everything (Delete)" },
+  "btnSave": { "message": "Save PNG" },
+  "btnSaveTitle": { "message": "Save this view with your drawing (Cmd/Ctrl+S)" },
+  "btnFade": { "message": "Fading ink" },
+  "btnFadeTitle": { "message": "Let ink disappear on its own (F)" },
+  "btnPageMode": { "message": "Use page" },
+  "btnDrawMode": { "message": "Back to drawing" },
+  "btnModeTitle": { "message": "Interact with the page (H)" },
+  "btnClose": { "message": "Exit" },
+  "btnCloseTitle": { "message": "Exit (Esc)" },
+
+  "hintSuffix": { "message": "Esc to exit" },
+  "hintPageMode": { "message": "You can use the page now / press H or \"Back to drawing\" to return / Esc to exit" },
+  "hintTexting": { "message": "Type, then Enter to confirm / Shift+Enter for a new line / Esc to cancel" },
+  "hintMoving": { "message": "Alt+drag to move what you just drew" },
+
+  "toastSaved": { "message": "Saved as PNG" },
+  "toastSaveFailed": { "message": "Couldn't save" },
+  "toastSaveFailedWith": {
+    "message": "Couldn't save ($reason$)",
+    "placeholders": {
+      "reason": { "content": "$1" }
+    }
+  },
+  "toastMeeting": {
+    "message": "You're on $service$. $tip$",
+    "placeholders": {
+      "service": { "content": "$1" },
+      "tip": { "content": "$2" }
+    }
+  },
+  "meetingTip": {
+    "message": "Start inkover on the tab you're sharing — not on the meeting window itself."
+  },
+  "meetingTipSlack": {
+    "message": "When sharing in a huddle, start inkover on the tab you're sharing."
+  }
+}

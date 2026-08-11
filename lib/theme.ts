@@ -34,20 +34,20 @@ export const theme = {
  * shotcraft の entrypoints/editor/toolbar.ts の COLORS と同じ並び・同じ値にする。
  */
 export const PEN_COLORS = [
-	{ id: "coral", label: "コーラル", value: "#fb7185" },
-	{ id: "amber", label: "アンバー", value: "#fbbf24" },
-	{ id: "emerald", label: "エメラルド", value: "#34d399" },
-	{ id: "sky", label: "スカイ", value: "#38bdf8" },
-	{ id: "violet", label: "バイオレット", value: "#a78bfa" },
-	{ id: "black", label: "黒", value: "#18181b" },
-	{ id: "white", label: "白", value: "#fafafa" },
+	{ id: "coral", labelKey: "colorCoral", value: "#fb7185" },
+	{ id: "amber", labelKey: "colorAmber", value: "#fbbf24" },
+	{ id: "emerald", labelKey: "colorEmerald", value: "#34d399" },
+	{ id: "sky", labelKey: "colorSky", value: "#38bdf8" },
+	{ id: "violet", labelKey: "colorViolet", value: "#a78bfa" },
+	{ id: "black", labelKey: "colorBlack", value: "#18181b" },
+	{ id: "white", labelKey: "colorWhite", value: "#fafafa" },
 ] as const;
 
 /** 線の太さ（CSS px）。 */
 export const PEN_SIZES = [
-	{ id: "s", label: "細", value: 4 },
-	{ id: "m", label: "中", value: 8 },
-	{ id: "l", label: "太", value: 16 },
+	{ id: "s", labelKey: "sizeSmall", value: 4 },
+	{ id: "m", labelKey: "sizeMedium", value: 8 },
+	{ id: "l", labelKey: "sizeLarge", value: 16 },
 ] as const;
 
 export type PenColorId = (typeof PEN_COLORS)[number]["id"];

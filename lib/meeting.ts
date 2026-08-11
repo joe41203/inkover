@@ -9,8 +9,8 @@
 export type MeetingService = {
 	id: string;
 	label: string;
-	/** 画面共有時の注意点。会議ツールごとに癖があるので個別に出す。 */
-	tip: string;
+	/** 画面共有時の注意点の i18n キー。会議ツールごとに癖があるので個別に出す。 */
+	tipKey: string;
 };
 
 const SERVICES: {
@@ -24,7 +24,7 @@ const SERVICES: {
 			label: "Google Meet",
 			// Meet の注釈機能は有料 Workspace 限定。無料プランの利用者にとっては
 			// inkover がその穴を埋める形になるので、そこに触れる。
-			tip: "共有するタブでこの拡張を起動してください（Meet の画面ではなく、共有したいページ側で使います）",
+			tipKey: "meetingTip",
 		},
 	},
 	{
@@ -32,7 +32,7 @@ const SERVICES: {
 		service: {
 			id: "zoom",
 			label: "Zoom",
-			tip: "共有するタブでこの拡張を起動してください（Zoom の画面ではなく、共有したいページ側で使います）",
+			tipKey: "meetingTip",
 		},
 	},
 	{
@@ -40,7 +40,7 @@ const SERVICES: {
 		service: {
 			id: "teams",
 			label: "Microsoft Teams",
-			tip: "共有するタブでこの拡張を起動してください（Teams の画面ではなく、共有したいページ側で使います）",
+			tipKey: "meetingTip",
 		},
 	},
 	{
@@ -48,7 +48,7 @@ const SERVICES: {
 		service: {
 			id: "webex",
 			label: "Webex",
-			tip: "共有するタブでこの拡張を起動してください（Webex の画面ではなく、共有したいページ側で使います）",
+			tipKey: "meetingTip",
 		},
 	},
 	{
@@ -56,7 +56,7 @@ const SERVICES: {
 		service: {
 			id: "slack",
 			label: "Slack",
-			tip: "ハドルで画面共有するときは、共有したいページのタブで起動してください",
+			tipKey: "meetingTipSlack",
 		},
 	},
 ];
