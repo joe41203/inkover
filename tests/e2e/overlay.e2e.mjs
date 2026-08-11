@@ -217,6 +217,30 @@ async function main() {
 			(await page.eval(`getComputedStyle(${GET_CANVAS}).pointerEvents`)) === "auto",
 		);
 
+		// --- iframe の上に描けること ---
+		// オーバーレイは最上位フレームに position:fixed で敷かれるので、
+		// iframe を含むページ全体を覆う。iframe ごとの注入は要らない。
+		await page.eval(keyExpr("Delete"));
+		await page.eval(`(function(){
+      if (document.getElementById("e2e-frame")) return "already";
+      const f = document.createElement("iframe");
+      f.id = "e2e-frame";
+      f.style.cssText = "position:absolute;left:120px;top:400px;width:400px;height:220px;border:2px solid #888";
+      f.src = "data:text/html,<body style='background:%23ffe;margin:0'>frame</body>";
+      document.body.appendChild(f);
+      return "added";
+    })()`);
+		await sleep(400);
+		await page.eval(dragExpr({ from: [180, 450], to: [460, 580], pointerId: 61 }));
+		await sleep(250);
+		const overFrame = await page.eval(COUNT_PAINTED);
+		check(
+			"iframe の上にも描ける",
+			overFrame > 200,
+			`不透明ピクセル: ${overFrame}`,
+		);
+		await page.eval(keyExpr("Delete"));
+
 		// --- 終了 ---
 		await page.eval(keyExpr("Escape"));
 		await sleep(300);
