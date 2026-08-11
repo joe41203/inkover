@@ -1,6 +1,13 @@
 import { drawShape, drawTextCaret } from "@/lib/draw";
-import { canvasSizeFor, toCanvasPoint } from "@/lib/geometry";
 import {
+	canvasToPngBlob,
+	downloadBlob,
+	exportFilename,
+	loadImage,
+} from "@/lib/export";
+import { canvasSizeFor, captureScale, toCanvasPoint } from "@/lib/geometry";
+import {
+	type CaptureResponse,
 	DEFAULT_PREFS,
 	type Message,
 	type PenPrefs,
@@ -207,6 +214,19 @@ async function startOverlay(
     }
     .btn:hover { color: ${theme.text}; }
     .btn[aria-pressed="true"] { color: ${theme.text}; border-color: ${theme.accent}; }
+    .toast {
+      position: fixed; bottom: 76px; left: 50%;
+      transform: translateX(-50%) translateY(6px);
+      background: ${theme.surface2}; color: ${theme.text};
+      border: 1px solid ${theme.border};
+      box-shadow: 0 8px 24px rgba(0,0,0,.45);
+      font: 12px/2 ${theme.fontSans};
+      padding: 3px 14px; border-radius: 10px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .18s ease, transform .18s ease;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     .hint {
       position: fixed; top: 12px; left: 50%;
       transform: translateX(-50%);
@@ -232,6 +252,9 @@ async function startOverlay(
 
 	const hint = document.createElement("div");
 	hint.className = "hint";
+
+	const toast = document.createElement("div");
+	toast.className = "toast";
 
 	const bar = document.createElement("div");
 	bar.className = "bar";
@@ -292,6 +315,12 @@ async function startOverlay(
 		requestRender();
 	});
 
+	const saveBtn = document.createElement("button");
+	saveBtn.className = "btn";
+	saveBtn.textContent = "PNG保存";
+	saveBtn.title = "描画込みでこの画面を保存 (Cmd/Ctrl+S)";
+	saveBtn.addEventListener("click", () => void exportPng());
+
 	const fadeBtn = document.createElement("button");
 	fadeBtn.className = "btn";
 	fadeBtn.textContent = "消えるインク";
@@ -324,9 +353,9 @@ async function startOverlay(
 	bar.appendChild(sep());
 	for (const s of sizeButtons) bar.appendChild(s.el);
 	bar.appendChild(sep());
-	bar.append(undoBtn, clearBtn, fadeBtn, modeBtn, sep(), closeBtn);
+	bar.append(undoBtn, clearBtn, saveBtn, fadeBtn, modeBtn, sep(), closeBtn);
 
-	shadow.append(style, canvas, hint, bar);
+	shadow.append(style, canvas, hint, toast, bar);
 
 	function syncPressed(): void {
 		for (const t of toolButtons) {
@@ -416,6 +445,9 @@ async function startOverlay(
 	let rafId = 0;
 	let pending = false;
 	let shiftHeld = false;
+	/** PNG 書き出し中は多重実行を防ぐ。 */
+	let exporting = false;
+	let toastTimer = 0;
 
 	/** 現在のスクロール位置。図形はページ座標で持ち、描画時に差を取る。 */
 	function currentScroll(): { x: number; y: number } {
@@ -522,6 +554,78 @@ async function startOverlay(
 		}
 		updateHint();
 		requestRender();
+	}
+
+	/**
+	 * 画面のスクリーンショットと描画を合成して PNG で保存する。
+	 *
+	 * captureVisibleTab は content script から直接呼べないので background に
+	 * 依頼する。ツールバーとヒントは写り込ませたくないので一時的に隠す。
+	 */
+	async function exportPng(): Promise<void> {
+		if (exporting) return;
+		exporting = true;
+		commitText();
+
+		// UI を隠し、描画が確定してからキャプチャする（rAF 2 回待つ）
+		bar.style.visibility = "hidden";
+		hint.style.visibility = "hidden";
+		await new Promise((r) =>
+			requestAnimationFrame(() => requestAnimationFrame(r)),
+		);
+
+		try {
+			const res = (await browser.runtime.sendMessage({
+				type: "CAPTURE_TAB",
+			})) as CaptureResponse | undefined;
+
+			if (!res?.ok) {
+				showToast(`保存できませんでした（${res?.error ?? "不明なエラー"}）`);
+				return;
+			}
+
+			const shot = await loadImage(res.dataUrl);
+			// 画像の実サイズとビューポートから軸別のスケールを求める。
+			// devicePixelRatio と一致しないことがある（ブラウザズーム時）。
+			const scale = captureScale(
+				shot.naturalWidth,
+				shot.naturalHeight,
+				window.innerWidth,
+				window.innerHeight,
+			);
+
+			const out = document.createElement("canvas");
+			out.width = shot.naturalWidth;
+			out.height = shot.naturalHeight;
+			const octx = out.getContext("2d");
+			if (!octx) {
+				showToast("保存できませんでした（キャンバスを作れません）");
+				return;
+			}
+			octx.drawImage(shot, 0, 0);
+			// 描画レイヤーはビューポート基準なので、画像の倍率に合わせて拡大する
+			octx.scale(scale.x, scale.y);
+			octx.drawImage(canvas, 0, 0, window.innerWidth, window.innerHeight);
+
+			const blob = await canvasToPngBlob(out);
+			downloadBlob(blob, exportFilename(new Date()));
+			showToast("PNG を保存しました");
+		} catch (err) {
+			console.error("[inkover] 書き出しに失敗しました", err);
+			showToast("保存できませんでした");
+		} finally {
+			bar.style.visibility = "";
+			hint.style.visibility = "";
+			exporting = false;
+		}
+	}
+
+	/** 一時的なメッセージを出す。alert はページを止めるので使わない。 */
+	function showToast(text: string): void {
+		toast.textContent = text;
+		toast.classList.add("show");
+		clearTimeout(toastTimer);
+		toastTimer = window.setTimeout(() => toast.classList.remove("show"), 2600);
 	}
 
 	function undo(): void {
@@ -717,6 +821,14 @@ async function startOverlay(
 			e.preventDefault();
 			e.stopPropagation();
 			cleanup();
+			return;
+		}
+
+		// 保存はページ側の「名前を付けて保存」を抑止して奪う
+		if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s") {
+			e.preventDefault();
+			e.stopPropagation();
+			void exportPng();
 			return;
 		}
 

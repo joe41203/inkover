@@ -1,4 +1,4 @@
-import type { Message } from "@/lib/messages";
+import type { CaptureResponse, Message } from "@/lib/messages";
 import { isRestrictedUrl } from "@/lib/restricted-url";
 
 /**
@@ -14,16 +14,56 @@ export default defineBackground(() => {
 		void toggleOverlay(tab.id, tab.url);
 	});
 
-	browser.runtime.onMessage.addListener((message: Message, sender) => {
-		const tabId = sender.tab?.id;
-		if (tabId === undefined) return;
-		if (message.type === "OVERLAY_OPENED") {
-			void setBadge(tabId, true);
-		} else if (message.type === "OVERLAY_CLOSED") {
-			void setBadge(tabId, false);
-		}
-	});
+	browser.runtime.onMessage.addListener(
+		(message: Message, sender, sendResponse) => {
+			const tabId = sender.tab?.id;
+			if (tabId === undefined) return;
+
+			if (message.type === "OVERLAY_OPENED") {
+				void setBadge(tabId, true);
+				return;
+			}
+			if (message.type === "OVERLAY_CLOSED") {
+				void setBadge(tabId, false);
+				return;
+			}
+			if (message.type === "CAPTURE_TAB") {
+				// 非同期で応答するので true を返してチャネルを開いたままにする
+				void captureTab(sender.tab?.windowId).then(sendResponse);
+				return true;
+			}
+		},
+	);
 });
+
+/**
+ * captureVisibleTab は 1 秒あたり 2 回までという制限がある。
+ * 超えると例外になるので、最短間隔を守って順番待ちさせる。
+ */
+const CAPTURE_MIN_INTERVAL_MS = 600;
+let nextCaptureAt = 0;
+
+async function captureTab(
+	windowId: number | undefined,
+): Promise<CaptureResponse> {
+	const now = Date.now();
+	const wait = Math.max(0, nextCaptureAt - now);
+	nextCaptureAt = Math.max(now, nextCaptureAt) + CAPTURE_MIN_INTERVAL_MS;
+	if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+
+	try {
+		// windowId が取れない場合は現在のウィンドウが対象になる
+		const dataUrl =
+			windowId === undefined
+				? await browser.tabs.captureVisibleTab({ format: "png" })
+				: await browser.tabs.captureVisibleTab(windowId, { format: "png" });
+		return { ok: true, dataUrl };
+	} catch (err) {
+		const error = err instanceof Error ? err.message : String(err);
+		console.error("[inkover] キャプチャに失敗しました", err);
+		return { ok: false, error };
+	}
+}
 
 async function toggleOverlay(tabId: number, url: string | undefined) {
 	if (isRestrictedUrl(url)) {

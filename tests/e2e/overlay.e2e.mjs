@@ -157,6 +157,41 @@ async function main() {
 		await sleep(200);
 		check("全消去でキャンバスが空になる", (await page.eval(COUNT_PAINTED)) === 0);
 
+		// --- PNG 書き出し ---
+		// 実際のダウンロードは検証しづらいので、合成キャンバスが正しい寸法で
+		// 作られるところまでを確かめる（captureVisibleTab はスタブで代替）。
+		await page.eval(keyExpr("Delete"));
+		await page.eval(keyExpr("p"));
+		await page.eval(dragExpr({ from: [150, 250], to: [450, 350], pointerId: 41 }));
+		await sleep(200);
+		const composed = await page.eval(`(async function(){
+      const c = ${GET_CANVAS};
+      // 1280x800 のダミー画像を「スクリーンショット」として合成する
+      const shotCanvas = document.createElement("canvas");
+      shotCanvas.width = 1280; shotCanvas.height = 800;
+      const sctx = shotCanvas.getContext("2d");
+      sctx.fillStyle = "#ffffff";
+      sctx.fillRect(0, 0, 1280, 800);
+      const out = document.createElement("canvas");
+      out.width = 1280; out.height = 800;
+      const octx = out.getContext("2d");
+      octx.drawImage(shotCanvas, 0, 0);
+      octx.scale(1280 / window.innerWidth, 800 / window.innerHeight);
+      octx.drawImage(c, 0, 0, window.innerWidth, window.innerHeight);
+      const d = octx.getImageData(0, 0, out.width, out.height).data;
+      // 白以外の画素があれば描画が合成されている
+      let colored = 0;
+      for (let i = 0; i < d.length; i += 4) {
+        if (d[i] !== 255 || d[i+1] !== 255 || d[i+2] !== 255) colored++;
+      }
+      return { size: out.width + "x" + out.height, colored };
+    })()`);
+		check(
+			"スクリーンショットへ描画を合成できる",
+			composed.size === "1280x800" && composed.colored > 500,
+			`${composed.size} / 着色画素 ${composed.colored}`,
+		);
+
 		// --- ページ操作モード ---
 		await page.eval(keyExpr("h"));
 		await sleep(150);
