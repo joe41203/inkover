@@ -247,6 +247,89 @@ export function isClick(from: Point, to: Point, threshold = 4): boolean {
 	return Math.hypot(to.x - from.x, to.y - from.y) < threshold;
 }
 
+// --- 直前の図形の微調整 ---
+
+/**
+ * 図形の当たり判定用の矩形（ページ座標）を返す。
+ *
+ * 厳密な形状判定はしない。「矢印の先をちょっとずらす」程度の用途なので、
+ * 外接矩形に余白を足したもので十分。
+ */
+export function shapeBounds(shape: Shape): {
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+} {
+	const xs: number[] = [];
+	const ys: number[] = [];
+
+	if (shape.kind === "pen") {
+		for (const p of shape.points) {
+			xs.push(p.x);
+			ys.push(p.y);
+		}
+	} else if (shape.kind === "text") {
+		xs.push(shape.at.x);
+		ys.push(shape.at.y);
+		// テキストは右下に伸びる。実測しないので概算で見込む。
+		const lines = shape.text.split("\n");
+		const longest = Math.max(...lines.map((l) => l.length), 1);
+		xs.push(shape.at.x + longest * shape.fontSize * 0.6);
+		ys.push(shape.at.y + lines.length * shape.fontSize * 1.35);
+	} else if (shape.kind === "step") {
+		const r = stepRadius(shape.size);
+		xs.push(shape.at.x - r, shape.at.x + r);
+		ys.push(shape.at.y - r, shape.at.y + r);
+	} else {
+		xs.push(shape.from.x, shape.to.x);
+		ys.push(shape.from.y, shape.to.y);
+	}
+
+	if (xs.length === 0) return { x: 0, y: 0, width: 0, height: 0 };
+	// 掴みやすいよう、線幅ぶんの余白を足す
+	const pad = Math.max(shape.size, 10);
+	const minX = Math.min(...xs) - pad;
+	const minY = Math.min(...ys) - pad;
+	return {
+		x: minX,
+		y: minY,
+		width: Math.max(...xs) + pad - minX,
+		height: Math.max(...ys) + pad - minY,
+	};
+}
+
+/** 点が図形の当たり判定内にあるか（座標はどちらもページ基準）。 */
+export function hitTest(shape: Shape, point: Point): boolean {
+	// スポットライトは画面全体を覆うので掴めると誤操作になる
+	if (shape.kind === "spotlight") return false;
+	const b = shapeBounds(shape);
+	return (
+		point.x >= b.x &&
+		point.x <= b.x + b.width &&
+		point.y >= b.y &&
+		point.y <= b.y + b.height
+	);
+}
+
+/** 図形を平行移動した新しい図形を返す（元は変更しない）。 */
+export function moveShape(shape: Shape, dx: number, dy: number): Shape {
+	if (shape.kind === "pen") {
+		return {
+			...shape,
+			points: shape.points.map((p) => ({ ...p, x: p.x + dx, y: p.y + dy })),
+		};
+	}
+	if (shape.kind === "text" || shape.kind === "step") {
+		return { ...shape, at: { x: shape.at.x + dx, y: shape.at.y + dy } };
+	}
+	return {
+		...shape,
+		from: { x: shape.from.x + dx, y: shape.from.y + dy },
+		to: { x: shape.to.x + dx, y: shape.to.y + dy },
+	};
+}
+
 // --- レーザーポインター ---
 
 /**

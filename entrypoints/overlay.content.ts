@@ -21,9 +21,11 @@ import {
 	hasAnimating,
 	type InputPoint,
 	dropExpiredLaser,
+	hitTest,
 	isClick,
 	isTwoPoint,
 	type LaserPoint,
+	moveShape,
 	nextStepIndex,
 	type Point,
 	type Shape,
@@ -462,6 +464,11 @@ async function startOverlay(
 	let shiftHeld = false;
 	/** レーザーをドラッグ中か。 */
 	let laserActive = false;
+	/**
+	 * 直前の図形を掴んで動かしている最中の状態。
+	 * 「矢印の先をちょっとずらす」程度の微調整のために、直近 1 つだけ動かせる。
+	 */
+	let moving: { index: number; lastX: number; lastY: number } | null = null;
 	/** レーザーの軌跡。図形とは寿命が違うので別に持つ。 */
 	const laser: LaserPoint[] = [];
 	/** PNG 書き出し中は多重実行を防ぐ。 */
@@ -692,6 +699,28 @@ async function startOverlay(
 		}
 
 		const p = pointFrom(e);
+
+		// Alt を押しながらのドラッグは、直前に描いた図形の位置調整にする。
+		// 通常の描画操作と衝突させないため修飾キー起点にしている。
+		if (e.altKey && shapes.length > 0) {
+			const index = shapes.length - 1;
+			const target = shapes[index];
+			const sc = currentScroll();
+			// 図形はページ座標なので、掴んだ点もページ座標へ直して判定する
+			const pageP = { x: p.x + sc.x, y: p.y + sc.y };
+			if (target && hitTest(target, pageP)) {
+				moving = { index, lastX: p.x, lastY: p.y };
+				canvas.style.cursor = "grabbing";
+				try {
+					canvas.setPointerCapture(e.pointerId);
+				} catch {
+					// 捕捉できなくても移動自体はできる
+				}
+				requestRender();
+				return;
+			}
+		}
+
 		// キャンバス外へドラッグしても追従させる。ただし pointerId が既に
 		// 解放されている場合など NotFoundError を投げることがあるため、
 		// 失敗しても描画は続行する（捕捉できなくても描けはする）。
@@ -749,6 +778,25 @@ async function startOverlay(
 	};
 
 	const onPointerMove = (e: PointerEvent): void => {
+		if (moving) {
+			e.preventDefault();
+			const p = pointFrom(e);
+			const target = shapes[moving.index];
+			if (target) {
+				const moved = moveShape(
+					target,
+					p.x - moving.lastX,
+					p.y - moving.lastY,
+				);
+				// 触った直後に消えると操作感が悪いので、フェードの起点を今にする
+				moved.finishedAt = performance.now();
+				shapes[moving.index] = moved;
+			}
+			moving.lastX = p.x;
+			moving.lastY = p.y;
+			requestRender();
+			return;
+		}
 		if (laserActive) {
 			e.preventDefault();
 			const lp = pointFrom(e);
@@ -784,6 +832,13 @@ async function startOverlay(
 	};
 
 	const onPointerUp = (e: PointerEvent): void => {
+		if (moving) {
+			e.preventDefault();
+			moving = null;
+			canvas.style.cursor = "";
+			requestRender();
+			return;
+		}
 		if (laserActive) {
 			laserActive = false;
 			requestRender();
@@ -852,6 +907,13 @@ async function startOverlay(
 				textInput.text += e.key;
 				requestRender();
 			}
+			return;
+		}
+
+		if (e.key === "Alt" && shapes.length > 0 && !moving) {
+			// 直前の図形を動かせることを伝える
+			hint.textContent = "Alt+ドラッグ: 直前に描いたものを動かす";
+			canvas.style.cursor = "grab";
 			return;
 		}
 
@@ -935,6 +997,10 @@ async function startOverlay(
 
 	const onKeyUp = (e: KeyboardEvent): void => {
 		if (e.key === "Shift") shiftHeld = false;
+		if (e.key === "Alt" && !moving) {
+			canvas.style.cursor = "";
+			updateHint();
+		}
 	};
 
 	const onResize = (): void => resize();

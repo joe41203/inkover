@@ -14,10 +14,12 @@ import {
 	type Shape,
 	shapeOpacity,
 	dropExpiredLaser,
+	hitTest,
 	isOffscreen,
 	LASER_TRAIL_MS,
 	type LaserPoint,
 	laserOpacity,
+	moveShape,
 	scrollOffset,
 	stepRadius,
 	toFreehandInput,
@@ -353,6 +355,87 @@ describe("レーザーポインター", () => {
 	});
 
 	it("すべて消えたら空になる（rAF を止められる）", () => {
-		expect(dropExpiredLaser([lp(0), lp(10)], LASER_TRAIL_MS * 2)).toHaveLength(0);
+		expect(dropExpiredLaser([lp(0), lp(10)], LASER_TRAIL_MS * 2)).toHaveLength(
+			0,
+		);
+	});
+});
+
+describe("図形の移動", () => {
+	const rect = (): Shape => ({
+		id: 1,
+		kind: "rect",
+		color: "#fff",
+		size: 8,
+		from: { x: 100, y: 100 },
+		to: { x: 300, y: 200 },
+		finishedAt: 0,
+		scroll: { x: 0, y: 0 },
+	});
+
+	it("矩形の内側は掴める", () => {
+		expect(hitTest(rect(), { x: 200, y: 150 })).toBe(true);
+	});
+
+	it("線幅ぶんの余白があり、少し外側でも掴める", () => {
+		expect(hitTest(rect(), { x: 95, y: 150 })).toBe(true);
+	});
+
+	it("十分離れていれば掴めない", () => {
+		expect(hitTest(rect(), { x: 500, y: 150 })).toBe(false);
+	});
+
+	it("スポットライトは掴めない（画面全体を覆うため誤操作になる）", () => {
+		const spot: Shape = {
+			id: 3,
+			kind: "spotlight",
+			color: "#fff",
+			size: 8,
+			from: { x: 100, y: 100 },
+			to: { x: 300, y: 200 },
+			finishedAt: 0,
+			scroll: { x: 0, y: 0 },
+		};
+		expect(hitTest(spot, { x: 200, y: 150 })).toBe(false);
+	});
+
+	it("2 点図形を平行移動できる", () => {
+		const moved = moveShape(rect(), 50, -20);
+		expect(moved.kind).toBe("rect");
+		if (moved.kind === "rect") {
+			expect(moved.from).toEqual({ x: 150, y: 80 });
+			expect(moved.to).toEqual({ x: 350, y: 180 });
+		}
+	});
+
+	it("ペンの全点を平行移動できる", () => {
+		const moved = moveShape(pen(0), 10, 10);
+		if (moved.kind === "pen") {
+			expect(moved.points[0]).toMatchObject({ x: 10, y: 10 });
+			expect(moved.points[1]).toMatchObject({ x: 20, y: 20 });
+		}
+	});
+
+	it("元の図形を変更しない", () => {
+		const original = rect();
+		moveShape(original, 100, 100);
+		if (original.kind === "rect") {
+			expect(original.from).toEqual({ x: 100, y: 100 });
+		}
+	});
+
+	it("ステップバッジはバッジの円が当たり判定になる", () => {
+		const step: Shape = {
+			id: 2,
+			kind: "step",
+			color: "#fff",
+			size: 8,
+			at: { x: 200, y: 200 },
+			index: 1,
+			finishedAt: 0,
+			scroll: { x: 0, y: 0 },
+		};
+		expect(hitTest(step, { x: 200, y: 200 })).toBe(true);
+		expect(hitTest(step, { x: 400, y: 200 })).toBe(false);
 	});
 });
