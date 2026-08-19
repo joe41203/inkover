@@ -5,7 +5,7 @@
 
 画面共有中のページに、そのまま描き込めるペン。
 
-> Chrome ウェブストアで審査中です。承認され次第、インストールリンクを掲載します。
+[Chrome ウェブストアで公開中](https://chromewebstore.google.com/detail/pngjaglnhpeccmpkkafmnopngpkepicj)
 
 Web 会議で自分が画面共有しているとき、「ここです」を口頭ではなく線で示すための Chrome 拡張です。描いた線は数秒で自動的に消えるので、消す操作すら要りません。
 
